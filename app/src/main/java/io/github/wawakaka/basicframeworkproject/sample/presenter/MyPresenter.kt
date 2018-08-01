@@ -7,8 +7,6 @@ import io.reactivex.Observable
 /**
  * Created by wawakaka on 17/07/18.
  */
-
-
 class MyPresenter(private val serverRequestManager: ServerRequestManager) {
 
     fun geCurrentWeatherObservable(apiKey: String): Observable<CurrentWeather> {

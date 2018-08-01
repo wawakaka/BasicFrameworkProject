@@ -12,7 +12,6 @@ import org.koin.android.ext.android.startKoin
 /**
  * Created by wawakaka on 17/07/18.
  */
-
 class BaseApplication : Application() {
 
     override fun onCreate() {

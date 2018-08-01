@@ -15,7 +15,6 @@ import javax.net.ssl.X509TrustManager
 /**
  * Created by wawakaka on 19/07/18.
  */
-
 fun OkHttpClient.Builder.enableTls12OnPreLollipop(): OkHttpClient.Builder {
     if (Build.VERSION.SDK_INT in Build.VERSION_CODES.JELLY_BEAN..Build.VERSION_CODES.LOLLIPOP) {
         try {
@@ -41,7 +40,7 @@ fun OkHttpClient.Builder.enableTls12OnPreLollipop(): OkHttpClient.Builder {
     return this
 }
 
-private fun OkHttpClient.Builder.getTrustManager(): X509TrustManager {
+private fun getTrustManager(): X509TrustManager {
     val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
     trustManagerFactory.init(null as KeyStore?)
     val trustManagers = trustManagerFactory.trustManagers

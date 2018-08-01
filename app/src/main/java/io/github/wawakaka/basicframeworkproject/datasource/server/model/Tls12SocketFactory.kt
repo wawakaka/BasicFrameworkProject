@@ -20,7 +20,7 @@ import javax.net.ssl.SSLSocketFactory
  *
  * @see SSLSocketFactory
  */
-class Tls12SocketFactory(internal val delegate: SSLSocketFactory) : SSLSocketFactory() {
+class Tls12SocketFactory(private val delegate: SSLSocketFactory) : SSLSocketFactory() {
 
     companion object {
         private val TLS_V12_ONLY = arrayOf("TLSv1.2")

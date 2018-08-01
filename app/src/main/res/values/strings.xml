@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">BasicFrameworkProject</string>
     <string name="go">GO!!!</string>
+    <string name="api_key">Api key</string>
 </resources>

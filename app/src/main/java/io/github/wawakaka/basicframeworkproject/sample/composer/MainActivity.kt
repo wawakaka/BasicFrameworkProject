@@ -4,6 +4,7 @@ package io.github.wawakaka.basicframeworkproject.sample.composer
  * Created by wawakaka on 17/07/18.
  */
 
+import android.Manifest
 import android.util.Log
 import android.widget.Toast
 import com.jakewharton.rxbinding2.view.RxView
@@ -21,6 +22,9 @@ import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.inject
 
+/**
+ * Created by wawakaka on 17/07/18.
+ */
 class MainActivity : BaseActivity() {
 
     companion object {
@@ -31,6 +35,7 @@ class MainActivity : BaseActivity() {
 
     init {
         initLayout()
+        initTestPermission()
         initEditText()
         initGoButton()
     }
@@ -43,6 +48,35 @@ class MainActivity : BaseActivity() {
             .subscribe {
                 setContentView(R.layout.activity_main)
             }
+    }
+
+    private fun initTestPermission() {
+        RxNavi
+            .observe(naviComponent, Event.CREATE)
+            .observeOn(AndroidSchedulers.mainThread())
+            .takeUntil(RxNavi.observe(naviComponent, Event.DESTROY))
+            .subscribe {
+                rxPermissions.setLogging(true)
+                testPermission()
+            }
+    }
+
+    private fun testPermission() {
+        rxPermissions
+            .requestEachCombined(
+                Manifest.permission.CAMERA,
+                Manifest.permission.READ_PHONE_STATE)
+            .subscribe(
+                { permission ->
+                    when {
+                        permission.granted -> Log.d(TAG, "permission granted")
+                        permission.shouldShowRequestPermissionRationale -> Log.d(TAG, "permission shouldShowRequestPermissionRationale")
+                        else -> Log.d(TAG, "permission denied")
+                    }
+                },
+                { Log.e(TAG, "requestInternetPermissionsObservable error", it) },
+                { Log.d(TAG, "requestInternetPermissionsObservable complete") }
+            )
     }
 
     private fun initEditText() {
