@@ -40,7 +40,7 @@ fun OkHttpClient.Builder.enableTls12OnPreLollipop(): OkHttpClient.Builder {
     return this
 }
 
-private fun OkHttpClient.Builder.getTrustManager(): X509TrustManager {
+private fun getTrustManager(): X509TrustManager {
     val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
     trustManagerFactory.init(null as KeyStore?)
     val trustManagers = trustManagerFactory.trustManagers

@@ -11,12 +11,9 @@ import com.trello.navi2.component.support.NaviAppCompatActivity
 @SuppressLint("Registered")
 open class BaseActivity : NaviAppCompatActivity() {
 
-    companion object {
-        private val TAG = BaseActivity::class.java.simpleName
-    }
-
     protected val naviComponent: NaviComponent
         get() = this
+
     protected val rxPermissions: RxPermissions
         get() = RxPermissions(this)
 
