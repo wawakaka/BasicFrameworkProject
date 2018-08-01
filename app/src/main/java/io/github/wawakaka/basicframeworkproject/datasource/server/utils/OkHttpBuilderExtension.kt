@@ -15,7 +15,6 @@ import javax.net.ssl.X509TrustManager
 /**
  * Created by wawakaka on 19/07/18.
  */
-
 fun OkHttpClient.Builder.enableTls12OnPreLollipop(): OkHttpClient.Builder {
     if (Build.VERSION.SDK_INT in Build.VERSION_CODES.JELLY_BEAN..Build.VERSION_CODES.LOLLIPOP) {
         try {
