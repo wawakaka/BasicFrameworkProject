@@ -1,9 +1,5 @@
 package io.github.wawakaka.basicframeworkproject.sample.composer
 
-/**
- * Created by wawakaka on 17/07/18.
- */
-
 import android.Manifest
 import android.util.Log
 import android.widget.Toast

@@ -16,5 +16,4 @@ open class BaseActivity : NaviAppCompatActivity() {
 
     protected val rxPermissions: RxPermissions
         get() = RxPermissions(this)
-
 }

@@ -43,7 +43,6 @@ val retrofitModule: Module = org.koin.dsl.module.applicationContext {
             get("gson_converter"),
             get("any_on_empty_converter")
         )
-
     }
     bean { provideServerApi(get("server_retrofit")) }
 }
@@ -52,11 +51,13 @@ fun provideServerApi(retrofit: Retrofit): ServerApi {
     return retrofit.create(ServerApi::class.java)
 }
 
-fun provideServerRetrofit(okHttpClient: OkHttpClient,
-                          baseUrl: String,
-                          callAdapterFactory: CallAdapter.Factory,
-                          gsonConverter: Converter.Factory,
-                          anyOnEmptyConverter: Converter.Factory): Retrofit {
+fun provideServerRetrofit(
+    okHttpClient: OkHttpClient,
+    baseUrl: String,
+    callAdapterFactory: CallAdapter.Factory,
+    gsonConverter: Converter.Factory,
+    anyOnEmptyConverter: Converter.Factory
+): Retrofit {
     return Retrofit.Builder()
         .client(okHttpClient)
         .baseUrl(baseUrl)
@@ -66,8 +67,10 @@ fun provideServerRetrofit(okHttpClient: OkHttpClient,
         .build()
 }
 
-fun provideOkHttpClient(headerInterceptor: Interceptor,
-                        loggingInterceptor: Interceptor): OkHttpClient {
+fun provideOkHttpClient(
+    headerInterceptor: Interceptor,
+    loggingInterceptor: Interceptor
+): OkHttpClient {
     return OkHttpClient.Builder()
         .addInterceptor(headerInterceptor)
         .addInterceptor(loggingInterceptor)
@@ -119,5 +122,3 @@ fun provideConverterFactory(gson: Gson): Converter.Factory {
 fun provideBaseUrl(): String {
     return "http://api.openweathermap.org/"
 }
-
-

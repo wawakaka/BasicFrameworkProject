@@ -65,5 +65,4 @@ class Tls12SocketFactory(private val delegate: SSLSocketFactory) : SSLSocketFact
         }
         return socket
     }
-
 }
