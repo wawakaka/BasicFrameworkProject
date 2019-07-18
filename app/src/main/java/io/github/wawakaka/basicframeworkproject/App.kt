@@ -1,4 +1,4 @@
-package io.github.wawakaka.basicframeworkproject.base
+package io.github.wawakaka.basicframeworkproject
 
 import android.app.Application
 import android.app.NotificationChannel
@@ -7,12 +7,13 @@ import android.content.Context
 import android.os.Build
 import android.support.multidex.MultiDex
 import org.jetbrains.anko.notificationManager
-import org.koin.android.ext.android.startKoin
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
 
 /**
  * Created by wawakaka on 17/07/18.
  */
-class BaseApplication : Application() {
+class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
@@ -21,7 +22,12 @@ class BaseApplication : Application() {
     }
 
     private fun initKoin() {
-        startKoin(this, applicationModules)
+        startKoin {
+            // declare used Android context
+            androidContext(this@App)
+            // declare modules
+            modules(applicationModules)
+        }
     }
 
     private fun initNotificationChannel() {
