@@ -55,6 +55,6 @@ dependencies {
     implementation "org.jetbrains.anko:anko:0.10.5"
     implementation 'org.koin:koin-android:2.0.1'
     implementation 'org.koin:koin-androidx-scope:2.0.1'
-    implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
+    implementation 'com.github.tbruyelle:rxpermissions:2.x.v0.9.3'
     testImplementation 'junit:junit:4.12'
 }
