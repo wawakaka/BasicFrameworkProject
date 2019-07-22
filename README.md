@@ -1,6 +1,8 @@
 BasicFrameworkProject
 =====================
 
+<img src="https://travis-ci.org/wawakaka/BasicFrameworkProject.svg?branch=master" alt="build:started">
+
 
 Base framework for creating Android application with X architecture.
 Using Kotlin, Rx, Retrofit and Kotlin Koin.
