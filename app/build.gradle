@@ -50,7 +50,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.0.1'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.0.1'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.4'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.10'
     implementation 'io.reactivex.rxjava2:rxkotlin:2.2.0'
     implementation "org.jetbrains.anko:anko:0.10.5"
     implementation 'org.koin:koin-android:2.0.1'
