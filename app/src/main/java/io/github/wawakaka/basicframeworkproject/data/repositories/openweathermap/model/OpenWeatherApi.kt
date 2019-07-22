@@ -1,6 +1,6 @@
-package io.github.wawakaka.basicframeworkproject.data.openweathermap.model
+package io.github.wawakaka.basicframeworkproject.data.repositories.openweathermap.model
 
-import io.github.wawakaka.basicframeworkproject.data.openweathermap.model.response.Weather
+import io.github.wawakaka.basicframeworkproject.data.repositories.openweathermap.model.response.Weather
 import io.reactivex.Observable
 import retrofit2.http.GET
 import retrofit2.http.Query

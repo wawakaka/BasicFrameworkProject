@@ -1,19 +1,16 @@
 package io.github.wawakaka.basicframeworkproject
 
-import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.Context
 import android.os.Build
-import android.support.multidex.MultiDex
+import androidx.multidex.MultiDexApplication
 import org.jetbrains.anko.notificationManager
 import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
+import org.koin.core.logger.Level
 
-/**
- * Created by wawakaka on 17/07/18.
- */
-class App : Application() {
+class App : MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
@@ -23,6 +20,8 @@ class App : Application() {
 
     private fun initKoin() {
         startKoin {
+            // enable log for debug build
+            if (BuildConfig.DEBUG) androidLogger(level = Level.DEBUG)
             // declare used Android context
             androidContext(this@App)
             // declare modules
@@ -40,10 +39,5 @@ class App : Application() {
                 )
             )
         }
-    }
-
-    override fun attachBaseContext(base: Context?) {
-        super.attachBaseContext(base)
-        MultiDex.install(this)
     }
 }

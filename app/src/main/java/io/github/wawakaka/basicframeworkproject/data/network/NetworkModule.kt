@@ -1,11 +1,13 @@
 package io.github.wawakaka.basicframeworkproject.data.network
 
+import android.app.Application
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.internal.bind.DateTypeAdapter
+import com.readystatesoftware.chuck.ChuckInterceptor
 import io.github.wawakaka.basicframeworkproject.BuildConfig
-import io.github.wawakaka.basicframeworkproject.data.openweathermap.model.OpenWeatherApi
+import io.github.wawakaka.basicframeworkproject.data.repositories.openweathermap.model.OpenWeatherApi
 import io.reactivex.schedulers.Schedulers
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -32,10 +34,12 @@ val networkModule = module {
         )
     }
     single(named("header_interceptor")) { provideHeaderInterceptor() }
+    single(named("chuck_interceptor")) { provideChuckInterceptor(get()) }
     single(named("okhttp_client")) {
         provideOkHttpClient(
             get(named("header_interceptor")),
-            get(named("http_logging_interceptor"))
+            get(named("http_logging_interceptor")),
+            get(named("chuck_interceptor"))
         )
     }
     single(named("server_retrofit")) {
@@ -49,11 +53,11 @@ val networkModule = module {
     single { provideServerApi(get(named("server_retrofit"))) }
 }
 
-fun provideServerApi(retrofit: Retrofit): OpenWeatherApi {
+private fun provideServerApi(retrofit: Retrofit): OpenWeatherApi {
     return retrofit.create(OpenWeatherApi::class.java)
 }
 
-fun provideServerRetrofit(
+private fun provideServerRetrofit(
     okHttpClient: OkHttpClient,
     baseUrl: String,
     callAdapterFactory: CallAdapter.Factory,
@@ -68,41 +72,47 @@ fun provideServerRetrofit(
         .build()
 }
 
-fun provideOkHttpClient(
+private fun provideOkHttpClient(
     headerInterceptor: Interceptor,
-    loggingInterceptor: Interceptor
+    loggingInterceptor: Interceptor,
+    chuckInterceptor: ChuckInterceptor
 ): OkHttpClient {
     return OkHttpClient.Builder()
         .addInterceptor(headerInterceptor)
         .addInterceptor(loggingInterceptor)
+        .addInterceptor(chuckInterceptor)
         .connectTimeout(60, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 }
 
-fun provideHttpLoggingInterceptor(logEnabled: Boolean): Interceptor {
+fun provideChuckInterceptor(application: Application): ChuckInterceptor {
+    return ChuckInterceptor(application)
+}
+
+private fun provideHttpLoggingInterceptor(logEnabled: Boolean): Interceptor {
     val httpLoggingInterceptor = HttpLoggingInterceptor()
     httpLoggingInterceptor.level =
         if (logEnabled) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
     return httpLoggingInterceptor
 }
 
-fun provideHeaderInterceptor(): Interceptor {
+private fun provideHeaderInterceptor(): Interceptor {
     return HeaderInterceptor()
 }
 
-fun provideCallAdapterFactory(): CallAdapter.Factory {
+private fun provideCallAdapterFactory(): CallAdapter.Factory {
     return RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io())
 }
 
-fun provideGson(): Gson {
+private fun provideGson(): Gson {
     return GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.IDENTITY)
         .registerTypeAdapter(Date::class.java, DateTypeAdapter())
         .create()
 }
 
-fun provideBaseUrl(): String {
+private fun provideBaseUrl(): String {
     return "http://api.openweathermap.org/"
 }

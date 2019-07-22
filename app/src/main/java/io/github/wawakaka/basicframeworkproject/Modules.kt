@@ -1,15 +1,14 @@
 package io.github.wawakaka.basicframeworkproject
 
 import io.github.wawakaka.basicframeworkproject.data.network.networkModule
-import io.github.wawakaka.basicframeworkproject.data.repositoryModule
-import io.github.wawakaka.basicframeworkproject.sample.sampleModule
+import io.github.wawakaka.basicframeworkproject.data.repositories.repositoryModule
+import io.github.wawakaka.basicframeworkproject.presentation.content.weatherListModule
+import io.github.wawakaka.basicframeworkproject.presentation.mainModule
 
-/**
- * Created by wawakaka on 17/07/18.
- */
 val applicationModules =
     listOf(
-        sampleModule,
+        mainModule,
         networkModule,
-        repositoryModule
+        repositoryModule,
+        weatherListModule
     )

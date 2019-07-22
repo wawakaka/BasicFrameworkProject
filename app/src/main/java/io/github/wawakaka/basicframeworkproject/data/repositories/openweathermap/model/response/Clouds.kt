@@ -1,4 +1,4 @@
-package io.github.wawakaka.basicframeworkproject.data.openweathermap.model.response
+package io.github.wawakaka.basicframeworkproject.data.repositories.openweathermap.model.response
 
 import com.google.gson.annotations.SerializedName
 
