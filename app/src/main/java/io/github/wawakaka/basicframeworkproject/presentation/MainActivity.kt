@@ -28,8 +28,8 @@ class MainActivity : BaseActivity(), FragmentActivityCallbacks, MainContract.Vie
     }
 
     private fun initFragment() {
-        val ft = supportFragmentManager.beginTransaction()
-        ft.add(R.id.fragment_container, WeatherListFragment()).commit()
+//        val ft = supportFragmentManager.beginTransaction()
+//        ft.add(R.id.fragment_container, WeatherListFragment()).commit()
     }
 
     override fun setToolbar(title: String, showUpButton: Boolean) {

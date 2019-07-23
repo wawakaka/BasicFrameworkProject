@@ -71,6 +71,6 @@ class WeatherListFragment : BaseFragment(), WeatherListContract.View {
     }
 
     companion object {
-        private val TAG = WeatherListFragment::class.java.canonicalName
+        private val TAG = WeatherListFragment::class.java.simpleName
     }
 }
