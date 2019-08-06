@@ -46,7 +46,7 @@ dependencies {
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version_ktx"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version_ktx"
     implementation 'com.google.android.material:material:1.0.0'
-    implementation 'com.jakewharton.rxbinding3:rxbinding:3.0.0-alpha2'
+    implementation 'com.jakewharton.rxbinding3:rxbinding:3.0.0'
     implementation 'com.readystatesoftware.chuck:library:1.1.0'
     implementation 'com.squareup.retrofit2:retrofit:2.6.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.6.0'
