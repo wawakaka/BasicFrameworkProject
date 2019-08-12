@@ -5,7 +5,6 @@ import android.util.Log
 import io.github.wawakaka.basicframeworkproject.R
 import io.github.wawakaka.basicframeworkproject.base.BaseActivity
 import io.github.wawakaka.basicframeworkproject.base.FragmentActivityCallbacks
-import io.github.wawakaka.basicframeworkproject.presentation.content.WeatherListFragment
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.androidx.scope.currentScope
 

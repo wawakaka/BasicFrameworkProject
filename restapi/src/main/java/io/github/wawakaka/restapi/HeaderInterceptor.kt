@@ -1,4 +1,4 @@
-package io.github.wawakaka.basicframeworkproject.data.network
+package io.github.wawakaka.restapi
 
 import okhttp3.*
 

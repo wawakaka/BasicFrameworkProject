@@ -10,7 +10,7 @@ import com.jakewharton.rxbinding3.view.clicks
 import com.jakewharton.rxbinding3.widget.afterTextChangeEvents
 import io.github.wawakaka.basicframeworkproject.R
 import io.github.wawakaka.basicframeworkproject.base.BaseFragment
-import io.github.wawakaka.basicframeworkproject.data.repositories.openweathermap.model.response.Weather
+import io.github.wawakaka.repository.openweathermap.model.response.Weather
 import kotlinx.android.synthetic.main.fragment_weather_list.*
 import org.koin.androidx.scope.currentScope
 
