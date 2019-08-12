@@ -3,17 +3,12 @@ package io.github.wawakaka.basicframeworkproject.data.network
 import android.app.Application
 import io.github.wawakaka.repository.openweathermap.OpenWeatherApi
 import io.github.wawakaka.restapi.RestApi
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
 
-/**
- * Created by wawakaka on 17/07/18.
- */
-
 val networkModule = module {
-    single(named("retrofit")) { provideRetrofit(get()) }
-    single { provideServerApi(get(named("retrofit"))) }
+    single { provideRetrofit(get()) }
+    single { provideServerApi(get()) }
 }
 
 private fun provideRetrofit(application: Application): Retrofit {
