@@ -1,7 +1,7 @@
 package io.github.wawakaka.basicframeworkproject.data.network
 
 import android.app.Application
-import io.github.wawakaka.repository.openweathermap.OpenWeatherApi
+import io.github.wawakaka.openweathermap.OpenWeatherApi
 import io.github.wawakaka.restapi.RestApi
 import org.koin.dsl.module
 import retrofit2.Retrofit

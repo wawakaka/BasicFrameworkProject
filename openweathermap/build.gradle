@@ -15,6 +15,8 @@ android {
         versionCode 1
         versionName "1.0"
 
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
     }
 
     buildTypes {
@@ -30,10 +32,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation lib.kotlin
+    implementation lib.rxjava
     implementation lib.retrofit
-    implementation lib.convertergson
-    implementation lib.adapterrxjava2
-    implementation lib.okhttp
-    implementation lib.logginginterceptor
-    implementation lib.chuck
+    implementation lib.gson
 }

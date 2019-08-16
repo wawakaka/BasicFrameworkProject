@@ -1,0 +1,46 @@
+ext {
+    kotlin = "1.3.41"
+    nav_ktx = "2.2.0-alpha01"
+    androidx = "1.0.2"
+    constraintlayout = "1.1.3"
+    multidex = "2.0.1"
+    legacysupportv4 = "1.0.0"
+    material = "1.0.0"
+    rxbinding = "3.0.0"
+    chuck = "1.1.0"
+    rxandroid = "2.1.1"
+    rxjava = "2.2.10"
+    rxkotlin = "2.3.0"
+    anko = "0.10.8"
+    koinandroid = "2.0.1"
+    rxpermissions = "0.10.2"
+    retrofit = "2.6.0"
+    okhttp = "4.0.1"
+    gson = "2.8.5"
+    lib = [
+            kotlin               : "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin",
+            corektx              : "androidx.core:core-ktx:$androidx",
+            appcompat            : "androidx.appcompat:appcompat:$androidx",
+            constraintlayout     : "androidx.constraintlayout:constraintlayout:$constraintlayout",
+            multidex             : "androidx.multidex:multidex:$multidex",
+            navigationfragmentktx: "androidx.navigation:navigation-fragment-ktx:$nav_ktx",
+            navigationuiktx      : "androidx.navigation:navigation-ui-ktx:$nav_ktx",
+            legacysupportv4      : "androidx.legacy:legacy-support-v4:$legacysupportv4",
+            material             : "com.google.android.material:material:$material",
+            gson                 : "com.google.code.gson:gson:$gson",
+            rxbinding            : "com.jakewharton.rxbinding3:rxbinding:$rxbinding",
+            chuck                : "com.readystatesoftware.chuck:library:$chuck",
+            rxandroid            : "io.reactivex.rxjava2:rxandroid:$rxandroid",
+            rxjava               : "io.reactivex.rxjava2:rxjava:$rxjava",
+            rxkotlin             : "io.reactivex.rxjava2:rxkotlin:$rxkotlin",
+            anko                 : "org.jetbrains.anko:anko:$anko",
+            koinandroid          : "org.koin:koin-android:$koinandroid",
+            koinandroidxscope    : "org.koin:koin-androidx-scope:$koinandroid",
+            rxpermissions        : "com.github.tbruyelle:rxpermissions:$rxpermissions",
+            retrofit             : "com.squareup.retrofit2:retrofit:$retrofit",
+            convertergson        : "com.squareup.retrofit2:converter-gson:$retrofit",
+            adapterrxjava2       : "com.squareup.retrofit2:adapter-rxjava2:$retrofit",
+            okhttp               : "com.squareup.okhttp3:okhttp:$okhttp",
+            logginginterceptor   : "com.squareup.okhttp3:logging-interceptor:$okhttp"
+    ]
+}
