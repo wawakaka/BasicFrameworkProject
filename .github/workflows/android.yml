@@ -14,6 +14,7 @@ jobs:
       with:
         java-version: 1.8
     - name: accept skd licenses
-      run: yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses
+      run: echo $ANDROID_HOME
+      yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses
     - name: Build with Gradle
       run: ./gradlew clean build --parallel --stacktrace --no-daemon
