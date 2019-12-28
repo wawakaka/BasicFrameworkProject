@@ -12,6 +12,14 @@ class MainPresenter(
 
     private lateinit var view: MainContract.View
 
+    override fun detach() {
+        compositeDisposable.clear()
+    }
+
+    override fun attach(view: MainContract.View) {
+        this.view = view
+    }
+
     override fun checkPermission(rxPermissions: RxPermissions) {
         rxPermissions
             .requestEachCombined(
@@ -31,13 +39,5 @@ class MainPresenter(
             permission.shouldShowRequestPermissionRationale -> view.onShouldShowPermissionRationale()
             else -> view.onPermissionDenied()
         }
-    }
-
-    override fun detach() {
-        compositeDisposable.clear()
-    }
-
-    override fun attach(view: MainContract.View) {
-        this.view = view
     }
 }

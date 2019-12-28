@@ -19,16 +19,9 @@ class MainActivity : BaseActivity(), FragmentActivityCallbacks, MainContract.Vie
         init()
     }
 
-    private fun init() {
-        setSupportActionBar(toolbar)
-        rxPermissions.setLogging(true)
-        presenter.checkPermission(rxPermissions)
-        initFragment()
-    }
-
-    private fun initFragment() {
-//        val ft = supportFragmentManager.beginTransaction()
-//        ft.add(R.id.fragment_container, WeatherListFragment()).commit()
+    override fun onDestroy() {
+        super.onDestroy()
+        presenter.detach()
     }
 
     override fun setToolbar(title: String, showUpButton: Boolean) {
@@ -55,9 +48,10 @@ class MainActivity : BaseActivity(), FragmentActivityCallbacks, MainContract.Vie
         Log.e(TAG, "requestInternetPermissionsObservable error", throwable)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        presenter.detach()
+    private fun init() {
+        setSupportActionBar(toolbar)
+        rxPermissions.setLogging(true)
+        presenter.checkPermission(rxPermissions)
     }
 
     companion object {

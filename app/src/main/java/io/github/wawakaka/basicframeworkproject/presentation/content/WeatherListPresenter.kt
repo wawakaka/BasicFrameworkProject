@@ -19,28 +19,35 @@ class WeatherListPresenter(
     override fun onApiTextChangesEvent(event: InitialValueObservable<TextViewAfterTextChangeEvent>) {
         event
             .skipInitialValue()
-            .filter { it.editable?.isBlank() != true }
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                if (it.editable?.isBlank() != true) view.enableButton()
-                else view.disableButton()
-            }, {
-                Log.e("onApiTextChangesEvent", "error", it)
-            }).let(compositeDisposable::add)
+            .subscribeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { updateButtonState(it) },
+                { Log.e("onApiTextChangesEvent", "error", it) }
+            ).let(compositeDisposable::add)
     }
 
-    override fun onButtonClickedEvent(event: Observable<Unit>) {
-        event
-            .observeOn(AndroidSchedulers.mainThread())
-            .map { view.getApiKey() }
-            .observeOn(Schedulers.io())
+    override fun onButtonClickedEvent() {
+        Observable.just(view.getApiKey())
+            .doOnNext {
+                Log.e("onButtonClickedEvent", "clicked")
+                view.showLoading()
+                view.disableButton()
+            }.observeOn(Schedulers.io())
             .flatMap { openWeatherRepository.getCurrentWeatherObservable(it) }
-            .map { it }
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
+            .doOnTerminate {
+                view.enableButton()
+                view.hideLoading()
+            }.subscribe(
                 { view.onGetCurrentWeatherSuccess(it) },
-                { view.onGetCurrentWeatherError(it) }
+                { view.onGetCurrentWeatherError(it) },
+                { Log.e("onButtonClickedEvent", "completed") }
             ).let(compositeDisposable::add)
+    }
+
+    private fun updateButtonState(it: TextViewAfterTextChangeEvent) {
+        if (it.editable?.isBlank() != true) view.enableButton()
+        else view.disableButton()
     }
 
     override fun detach() {

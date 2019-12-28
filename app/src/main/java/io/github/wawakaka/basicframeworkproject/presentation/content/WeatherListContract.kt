@@ -11,6 +11,8 @@ class WeatherListContract {
     interface View : BaseContract.View {
         fun enableButton()
         fun disableButton()
+        fun showLoading()
+        fun hideLoading()
         fun onGetCurrentWeatherSuccess(weather: Weather)
         fun onGetCurrentWeatherError(throwable: Throwable)
         fun getApiKey(): String
@@ -18,6 +20,6 @@ class WeatherListContract {
 
     interface Presenter : BaseContract.Presenter<View> {
         fun onApiTextChangesEvent(event: InitialValueObservable<TextViewAfterTextChangeEvent>)
-        fun onButtonClickedEvent(event: Observable<Unit>)
+        fun onButtonClickedEvent()
     }
 }
