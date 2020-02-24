@@ -1,7 +1,7 @@
 BasicFrameworkProject
 =====================
 
-<img src="https://travis-ci.org/wawakaka/BasicFrameworkProject.svg?branch=master" alt="build:started">
+![Android CI](https://github.com/wawakaka/BasicFrameworkProject/workflows/Android%20CI/badge.svg)
 
 
 Base framework for creating Android application with X architecture.
