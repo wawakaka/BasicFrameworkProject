@@ -5,12 +5,12 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion projectCompileSdkVersion
     defaultConfig {
         applicationId "io.github.wawakaka.basicframeworkproject"
-        minSdkVersion 26
-        targetSdkVersion 28
-        buildToolsVersion '28.0.3'
+        minSdkVersion projectMinSdkVersion
+        targetSdkVersion projectTargetSdkVersion
+        buildToolsVersion projectBuildToolsVersion
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
@@ -61,5 +61,5 @@ dependencies {
     implementation lib.rxpermissions
     implementation lib.retrofit
 
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13'
 }
