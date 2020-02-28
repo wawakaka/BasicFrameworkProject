@@ -1,4 +1,4 @@
-package io.github.wawakaka.basicframeworkproject.data.repositories
+package io.github.wawakaka.basicframeworkproject.data
 
 import io.github.wawakaka.repository.Repository
 import org.koin.dsl.module

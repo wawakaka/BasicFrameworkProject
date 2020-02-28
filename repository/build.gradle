@@ -1,6 +1,8 @@
 apply from: "$rootDir/dep/build-lib.gradle"
 
 dependencies {
+    implementation project(':restapi')
+
     implementation lib.rxjava
     implementation lib.retrofit
     implementation lib.gson

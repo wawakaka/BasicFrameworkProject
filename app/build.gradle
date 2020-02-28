@@ -36,7 +36,6 @@ android {
 dependencies {
 
     implementation project(':repository')
-    implementation project(':restapi')
 
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
