@@ -1,7 +1,0 @@
-apply from: "$rootDir/dep/build-lib.gradle"
-
-dependencies {
-    implementation lib.rxjava
-    implementation lib.retrofit
-    implementation lib.gson
-}

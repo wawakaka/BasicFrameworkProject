@@ -1,6 +1,6 @@
-package io.github.wawakaka.openweathermap
+package io.github.wawakaka.repository.openweathermap
 
-import io.github.wawakaka.openweathermap.model.response.Weather
+import io.github.wawakaka.repository.openweathermap.model.response.Weather
 import io.reactivex.Observable
 
 class OpenWeatherRepository(private val openWeatherApi: OpenWeatherApi) {

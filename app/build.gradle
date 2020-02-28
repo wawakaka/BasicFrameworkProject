@@ -35,7 +35,6 @@ android {
 
 dependencies {
 
-    implementation project(':openweathermap')
     implementation project(':repository')
     implementation project(':restapi')
 

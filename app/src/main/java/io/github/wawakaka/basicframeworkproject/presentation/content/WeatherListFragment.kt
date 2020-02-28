@@ -14,7 +14,7 @@ import io.github.wawakaka.basicframeworkproject.R
 import io.github.wawakaka.basicframeworkproject.base.BaseFragment
 import io.github.wawakaka.basicframeworkproject.utilities.makeInvisible
 import io.github.wawakaka.basicframeworkproject.utilities.makeVisible
-import io.github.wawakaka.openweathermap.model.response.Weather
+import io.github.wawakaka.repository.openweathermap.model.response.Weather
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers

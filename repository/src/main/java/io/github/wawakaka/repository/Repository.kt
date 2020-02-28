@@ -1,7 +1,7 @@
 package io.github.wawakaka.repository
 
-import io.github.wawakaka.openweathermap.OpenWeatherApi
-import io.github.wawakaka.openweathermap.OpenWeatherRepository
+import io.github.wawakaka.repository.openweathermap.OpenWeatherApi
+import io.github.wawakaka.repository.openweathermap.OpenWeatherRepository
 
 object Repository {
 

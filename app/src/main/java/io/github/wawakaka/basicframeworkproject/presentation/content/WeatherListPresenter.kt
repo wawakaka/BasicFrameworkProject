@@ -3,7 +3,7 @@ package io.github.wawakaka.basicframeworkproject.presentation.content
 import android.util.Log
 import com.jakewharton.rxbinding3.InitialValueObservable
 import com.jakewharton.rxbinding3.widget.TextViewAfterTextChangeEvent
-import io.github.wawakaka.openweathermap.OpenWeatherRepository
+import io.github.wawakaka.repository.openweathermap.OpenWeatherRepository
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable

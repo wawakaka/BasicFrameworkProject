@@ -2,11 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/BasicFrameworkProject.iml" filepath="$PROJECT_DIR$/.idea/BasicFrameworkProject.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/openweathermap/openweathermap.iml" filepath="$PROJECT_DIR$/openweathermap/openweathermap.iml" />
-      <module fileurl="file://$PROJECT_DIR$/repository/repository.iml" filepath="$PROJECT_DIR$/repository/repository.iml" />
-      <module fileurl="file://$PROJECT_DIR$/restapi/restapi.iml" filepath="$PROJECT_DIR$/restapi/restapi.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/BasicFrameworkProject.iml" filepath="$PROJECT_DIR$/.idea/BasicFrameworkProject.iml" group="BasicFrameworkProject" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" group="BasicFrameworkProject/app" />
+      <module fileurl="file://$PROJECT_DIR$/domain/domain.iml" filepath="$PROJECT_DIR$/domain/domain.iml" group="BasicFrameworkProject/domain" />
+      <module fileurl="file://$PROJECT_DIR$/repository/repository.iml" filepath="$PROJECT_DIR$/repository/repository.iml" group="BasicFrameworkProject/repository" />
+      <module fileurl="file://$PROJECT_DIR$/restapi/restapi.iml" filepath="$PROJECT_DIR$/restapi/restapi.iml" group="BasicFrameworkProject/restapi" />
     </modules>
   </component>
 </project>
