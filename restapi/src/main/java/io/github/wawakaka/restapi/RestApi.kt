@@ -19,14 +19,14 @@ import java.util.concurrent.TimeUnit
 
 object RestApi {
 
-    fun retrofit(application: Application): Retrofit {
+    fun retrofit(application: Application, baseUrl: String): Retrofit {
         return provideServerRetrofit(
             okHttpClient = provideOkHttpClient(
                 headerInterceptor = HeaderInterceptor(),
                 loggingInterceptor = provideHttpLoggingInterceptor(BuildConfig.DEBUG),
                 chuckInterceptor = provideChuckInterceptor(application)
             ),
-            baseUrl = provideBaseUrl(),
+            baseUrl = baseUrl,
             callAdapterFactory = provideCallAdapterFactory(),
             gson = provideGson()
         )
@@ -82,10 +82,6 @@ object RestApi {
             .setFieldNamingPolicy(FieldNamingPolicy.IDENTITY)
             .registerTypeAdapter(Date::class.java, DateTypeAdapter())
             .create()
-    }
-
-    private fun provideBaseUrl(): String {
-        return "http://api.openweathermap.org/"
     }
 
 }

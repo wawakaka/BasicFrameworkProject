@@ -6,6 +6,6 @@
 
     <fragment
         android:id="@+id/weatherListFragment"
-        android:name="io.github.wawakaka.basicframeworkproject.presentation.content.WeatherListFragment"
+        android:name="io.github.wawakaka.basicframeworkproject.presentation.content.CurrencyFragment"
         android:label="WeatherListFragment" />
 </navigation>

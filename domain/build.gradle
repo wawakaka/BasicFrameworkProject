@@ -1,1 +1,7 @@
 apply from: "$rootDir/dep/build-lib.gradle"
+
+dependencies {
+    implementation project(':repository')
+    implementation lib.rxjava
+    implementation lib.rxandroid
+}

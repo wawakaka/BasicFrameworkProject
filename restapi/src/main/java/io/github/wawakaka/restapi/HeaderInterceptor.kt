@@ -2,7 +2,7 @@ package io.github.wawakaka.restapi
 
 import okhttp3.*
 
-class HeaderInterceptor : Interceptor, Authenticator {
+internal class HeaderInterceptor : Interceptor, Authenticator {
 
     /**
      * Interceptor class for setting of the headers for every request
