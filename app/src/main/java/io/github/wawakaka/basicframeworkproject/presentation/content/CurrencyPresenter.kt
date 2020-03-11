@@ -2,6 +2,7 @@ package io.github.wawakaka.basicframeworkproject.presentation.content
 
 import android.util.Log
 import io.github.wawakaka.domain.usecase.GetLatestRatesUsecase
+import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 
 class CurrencyPresenter(
@@ -12,7 +13,8 @@ class CurrencyPresenter(
     private lateinit var view: CurrencyContract.View
 
     override fun onButtonClickedEvent() {
-        usecase.getLatestCurrencyRates()
+        Observable.just(view.showLoading())
+            .flatMap { usecase.getLatestCurrencyRates() }
             .doOnTerminate { view.hideLoading() }
             .subscribe(
                 { view.onGetDataSuccess(it) },

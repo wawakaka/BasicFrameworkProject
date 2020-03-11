@@ -7,7 +7,7 @@ class CurrencyContract {
     interface View : BaseContract.View {
         fun showLoading()
         fun hideLoading()
-        fun onGetDataSuccess(string: String)
+        fun onGetDataSuccess(data: List<Pair<String, Double>>)
         fun onGetDataFailed(throwable: Throwable)
     }
 

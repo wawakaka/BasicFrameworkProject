@@ -7,11 +7,11 @@ import io.reactivex.schedulers.Schedulers
 
 class GetLatestRatesUsecase(private val currencyRatesRepository: CurrencyRatesRepository) {
 
-    fun getLatestCurrencyRates(): Observable<String> {
+    fun getLatestCurrencyRates(): Observable<List<Pair<String, Double>>> {
         return currencyRatesRepository
             .getLatestCurrencyRates()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .map { it.rates.toString() }
+            .map { it.rates?.toList() }
     }
 }

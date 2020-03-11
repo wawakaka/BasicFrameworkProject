@@ -20,11 +20,9 @@
         android:layout_gravity="center"
         android:text="@string/go" />
 
-    <TextView
-        android:id="@+id/result"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:gravity="center" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_currency"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
 </LinearLayout>

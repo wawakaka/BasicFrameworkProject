@@ -8,15 +8,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.jakewharton.rxbinding3.view.clicks
 import io.github.wawakaka.basicframeworkproject.R
 import io.github.wawakaka.basicframeworkproject.base.BaseFragment
+import io.github.wawakaka.basicframeworkproject.presentation.content.adapter.CurrencyListAdapter
 import io.github.wawakaka.basicframeworkproject.utilities.makeInvisible
 import io.github.wawakaka.basicframeworkproject.utilities.makeVisible
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.fragment_weather_list.*
+import kotlinx.android.synthetic.main.fragment_currency.*
 import org.koin.androidx.scope.currentScope
 import java.util.concurrent.TimeUnit
 
@@ -30,7 +32,7 @@ class CurrencyFragment : BaseFragment(), CurrencyContract.View {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_weather_list, container, false)
+        return inflater.inflate(R.layout.fragment_currency, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -53,8 +55,15 @@ class CurrencyFragment : BaseFragment(), CurrencyContract.View {
         progress_loading.makeInvisible()
     }
 
-    override fun onGetDataSuccess(string: String) {
-        result.text = string
+    override fun onGetDataSuccess(data: List<Pair<String, Double>>) {
+        recycler_currency.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = CurrencyListAdapter(data).apply {
+                this.clickListener = {
+                    Toast.makeText(context, "", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
         Log.d(TAG, "onGetCurrentWeather next")
     }
 
