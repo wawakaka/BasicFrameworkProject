@@ -3,6 +3,11 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/BasicFrameworkProject.iml" filepath="$PROJECT_DIR$/.idea/BasicFrameworkProject.iml" group="BasicFrameworkProject" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/BasicFrameworkProject-app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/BasicFrameworkProject-app.iml" group="BasicFrameworkProject/app" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/domain/BasicFrameworkProject-domain.iml" filepath="$PROJECT_DIR$/.idea/modules/domain/BasicFrameworkProject-domain.iml" group="BasicFrameworkProject/domain" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/repository/BasicFrameworkProject-repository.iml" filepath="$PROJECT_DIR$/.idea/modules/repository/BasicFrameworkProject-repository.iml" group="BasicFrameworkProject/repository" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/restapi/BasicFrameworkProject-restapi.iml" filepath="$PROJECT_DIR$/.idea/modules/restapi/BasicFrameworkProject-restapi.iml" group="BasicFrameworkProject/restapi" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/StudioProjects-BasicFrameworkProject.iml" filepath="$PROJECT_DIR$/.idea/modules/StudioProjects-BasicFrameworkProject.iml" group="BasicFrameworkProject" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" group="BasicFrameworkProject/app" />
       <module fileurl="file://$PROJECT_DIR$/domain/domain.iml" filepath="$PROJECT_DIR$/domain/domain.iml" group="BasicFrameworkProject/domain" />
       <module fileurl="file://$PROJECT_DIR$/repository/repository.iml" filepath="$PROJECT_DIR$/repository/repository.iml" group="BasicFrameworkProject/repository" />
