@@ -27,13 +27,13 @@
 
 ### Key Characteristics
 - **Package Name:** `io.github.wawakaka.basicframeworkproject`
-- **Language:** Kotlin 1.9.22
+- **Language:** Kotlin 2.0.21
 - **Build System:** Gradle 8.5
 - **AGP:** 8.2.2
 - **Min SDK:** 26 (Android 8.0)
 - **Target SDK:** 34 (Android 14)
 - **Compile SDK:** 34
-- **JDK:** 17 (required)
+- **JDK:** 21 (recommended, 17+ required)
 - **Primary Feature:** Currency exchange rate display
 
 ### Project Purpose
@@ -273,10 +273,10 @@ restapi/
 
 | Category | Technology | Version | Purpose |
 |----------|-----------|---------|---------|
-| **Language** | Kotlin | 1.9.22 | Primary development language |
+| **Language** | Kotlin | 2.0.21 | Primary development language |
 | **Build** | Gradle | 8.5 | Build automation |
 | **AGP** | Android Gradle Plugin | 8.2.2 | Android build system |
-| **JDK** | Java Development Kit | 17 | Required for AGP 8.2+ |
+| **JDK** | Java Development Kit | 21 | Build target (17+ required) |
 | **UI Framework** | Android SDK | API 34 | Application framework |
 
 ### Key Libraries
@@ -978,25 +978,28 @@ override fun onDestroyView() {
 
 ## Change Log
 
-### 2026-01-10 (Milestone 1 Complete)
+### 2026-01-10 (Milestone 1 Complete - Enhanced)
 - **Milestone 1: Modernization Complete**
   - Upgraded Gradle 6.1.1 → 8.5
   - Upgraded AGP 7.0.0 → 8.2.2
-  - Upgraded Kotlin 1.3.72 → 1.9.22
+  - Upgraded Kotlin 1.3.72 → 2.0.21 (Kotlin 2.x with K2 compiler)
+  - Upgraded JDK target 17 → 21 (LTS)
   - Implemented Gradle Version Catalog for dependency management
   - Updated all AndroidX libraries to latest versions
-  - Updated Koin 2.0.1 → 3.5.3 (breaking changes)
+  - Updated Koin 2.0.1 → 3.5.3 with breaking changes fixed
   - Removed deprecated jcenter() repository
   - Removed deprecated kotlin-android-extensions plugin
-  - Enabled ViewBinding (migration in progress)
+  - Enabled ViewBinding (migration deferred to Milestone 2 - Compose)
   - Added namespace declarations to all modules
   - Updated targetSdk 29 → 34
-  - Added JDK 17 requirement
-- Updated Technology Stack section with current versions
+  - Fixed Koin 3.x breaking changes (scope management)
+  - Implemented manual scope creation with createScope() for Activities/Fragments
+  - Proper scope lifecycle management (lazy init, close on destroy)
+- Updated Technology Stack section with Kotlin 2.0.21 and JDK 21
 - Updated Gradle Configuration section for Version Catalog
 - Updated Common Tasks section with new dependency management approach
-- Added ViewBinding migration guide
-- Added Koin 3.x migration notes
+- Added Koin 3.x migration examples with scope management patterns
+- Documented JDK 21 compatibility
 
 ### 2026-01-10 (Initial)
 - Initial CLAUDE.md creation
