@@ -6,7 +6,7 @@ targetSdk = "34"
 
 # Build Tools
 agp = "8.2.2"
-kotlin = "1.9.22"
+kotlin = "2.0.21"
 
 # AndroidX Core
 androidxCore = "1.12.0"
