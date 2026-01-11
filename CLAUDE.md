@@ -206,11 +206,9 @@ domain/
 **Example UseCase:**
 ```kotlin
 class GetLatestRatesUsecase(private val repository: CurrencyRatesRepository) {
-    fun execute(base: String): Observable<List<Pair<String, Double>>> {
-        return repository.getLatestCurrencyRates(base)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .map { /* transform data */ }
+    suspend fun getLatestCurrencyRates(): List<Pair<String, Double>> {
+        val response = repository.getLatestCurrencyRates()
+        return response.rates?.toList() ?: emptyList()
     }
 }
 ```
@@ -241,7 +239,7 @@ repository/
 ```kotlin
 interface CurrencyRatesApi {
     @GET("latest")
-    fun getLatestWithBase(@Query("base") base: String): Observable<CurrencyRatesResponse>
+    suspend fun getLatestWithBase(@Query("base") base: String): CurrencyRatesResponse
 }
 ```
 
@@ -263,7 +261,7 @@ restapi/
 - **Timeouts:** 60s connect/read/write
 - **Interceptors:** Headers, logging, Chuck (network inspection)
 - **Converters:** Gson with identity field naming
-- **Adapters:** RxJava2 call adapter
+- **Note:** Uses suspend functions natively (Retrofit 2.6+)
 
 ---
 
@@ -281,12 +279,12 @@ restapi/
 
 ### Key Libraries
 
-#### Reactive Programming
-- **RxJava 2:** `2.2.21` - Reactive streams (final 2.x version)
-- **RxKotlin:** `2.4.0` - Kotlin extensions for RxJava
-- **RxAndroid:** `2.1.1` - Android schedulers
-- **RxBinding:** `3.1.0` - UI event bindings
-- **RxPermissions:** `0.12` - Permission handling
+#### Kotlin Coroutines
+- **Kotlin Coroutines Core:** `1.7.3` - Lightweight concurrency library
+- **Kotlin Coroutines Android:** `1.7.3` - Android-specific coroutine support
+- **AndroidX Lifecycle Runtime KTX:** `2.7.0` - Lifecycle-aware coroutine scopes
+- **AndroidX Lifecycle ViewModel KTX:** `2.7.0` - ViewModel coroutine support
+- **RxPermissions:** `0.12` - Permission handling (M4 migration planned)
 
 #### Networking
 - **Retrofit:** `2.9.0` - REST API client
@@ -482,33 +480,65 @@ class MyPresenter : BasePresenter<MyContract.View>() {
 }
 ```
 
-### RxJava Patterns
+### Kotlin Coroutines Patterns
 
-#### Resource Management
-Always use `CompositeDisposable` in presenters:
+#### Presenter with Coroutine Scope
+Always extend `BasePresenter` which provides `presenterScope`:
 
 ```kotlin
-class MyPresenter : BasePresenter<MyContract.View>() {
-    private val compositeDisposable = CompositeDisposable()
+class MyPresenter(
+    private val usecase: MyUsecase
+) : BasePresenter<MyContract.View>(), MyContract.Presenter {
 
-    override fun onViewDetached() {
-        compositeDisposable.clear()
+    override fun doAction() {
+        presenterScope.launch {
+            view?.showLoading()
+            try {
+                val data = usecase.getData()
+                view?.onSuccess(data)
+            } catch (e: Exception) {
+                view?.onError(e)
+            } finally {
+                view?.hideLoading()
+            }
+        }
     }
+    // detach() inherited from BasePresenter - auto-cancels presenterScope
 }
 ```
 
-#### Threading
-Standard pattern for API calls:
+#### Fragment with Lifecycle Scope
+Use `lifecycleScope` for lifecycle-aware coroutines:
 
 ```kotlin
-repository.getData()
-    .subscribeOn(Schedulers.io())           // Network on IO thread
-    .observeOn(AndroidSchedulers.mainThread()) // Results on main thread
-    .subscribe({ data ->
-        // Success on main thread
-    }, { error ->
-        // Error on main thread
-    })
+class MyFragment : Fragment() {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        button.setOnClickListener {
+            lifecycleScope.launch {
+                presenter.doAction()
+            }
+        }
+    }
+    // lifecycleScope automatically cancels when fragment is destroyed
+}
+```
+
+#### Suspend Functions in Domain/Repository
+Replace Observable<T> with suspend functions:
+
+```kotlin
+// Repository
+suspend fun getLatestCurrencyRates(): CurrencyRatesResponse {
+    return currencyRatesApi.getLatestWithBase()
+}
+
+// UseCase
+suspend fun getLatestRates(): List<Pair<String, Double>> {
+    val response = repository.getLatestCurrencyRates()
+    return response.rates?.toList() ?: emptyList()
+}
 ```
 
 ### MVP Lifecycle
@@ -517,37 +547,42 @@ repository.getData()
 ```kotlin
 override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
-    presenter.onViewAttached(this)  // Attach view
+    presenter.attach(this)  // Attach view
 }
 
-override fun onDestroyView() {
-    presenter.onViewDetached()       // Detach view, cleanup
-    super.onDestroyView()
+override fun onDestroy() {
+    presenter.detach()      // Detach view, cleanup coroutines
+    super.onDestroy()
 }
 ```
 
-**Presenter:**
+**Presenter (extends BasePresenter):**
 ```kotlin
-override fun onViewAttached(view: View) {
+override fun attach(view: MyView) {
     this.view = view
-    // Initialize subscriptions
+    // Initialize coroutines if needed
 }
 
-override fun onViewDetached() {
-    compositeDisposable.clear()      // Clear RxJava subscriptions
+override fun detach() {
+    presenterScope.cancel()  // Cancel all ongoing coroutines
     this.view = null
 }
 ```
 
 ### Error Handling
 
-**In Presenters:**
+**In Presenters (with Coroutines):**
 ```kotlin
-.subscribe({ data ->
-    view?.onGetDataSuccess(data)
-}, { throwable ->
-    view?.onGetDataFailed(throwable)
-})
+presenterScope.launch {
+    try {
+        val data = usecase.getData()
+        view?.onGetDataSuccess(data)
+    } catch (e: Exception) {
+        view?.onGetDataFailed(e)
+    } finally {
+        view?.hideLoading()
+    }
+}
 ```
 
 **In Views:**
@@ -587,6 +622,7 @@ override fun onGetDataFailed(throwable: Throwable) {
 | `BaseActivity.kt` | Base activity with RxPermissions |
 | `BaseFragment.kt` | Base fragment with activity callbacks |
 | `BaseContract.kt` | MVP base interfaces |
+| `BasePresenter.kt` | Base presenter with `presenterScope` for coroutines |
 | `FragmentActivityCallbacks.kt` | Fragment-Activity communication |
 
 ### Koin Modules
@@ -638,23 +674,17 @@ class FeaturePresenter(
     private val useCase: FeatureUseCase
 ) : BasePresenter<FeatureContract.View>(), FeatureContract.Presenter {
 
-    private val compositeDisposable = CompositeDisposable()
-
     override fun loadData() {
-        useCase.execute()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ data ->
+        presenterScope.launch {
+            try {
+                val data = useCase.execute()
                 view?.onDataLoaded(data)
-            }, { error ->
-                view?.onError(error)
-            })
-            .addTo(compositeDisposable)
+            } catch (e: Exception) {
+                view?.onError(e)
+            }
+        }
     }
-
-    override fun onViewDetached() {
-        compositeDisposable.clear()
-    }
+    // detach() inherited from BasePresenter - auto-cancels presenterScope
 }
 ```
 
@@ -681,11 +711,11 @@ val applicationModules = listOf(
 
 ### Adding a New API Endpoint
 
-1. **Define API interface** in `repository` module:
+1. **Define API interface** in `repository` module (with suspend functions):
 ```kotlin
 interface FeatureApi {
     @GET("endpoint")
-    fun getData(@Query("param") param: String): Observable<ResponseModel>
+    suspend fun getData(@Query("param") param: String): ResponseModel
 }
 ```
 
@@ -696,20 +726,26 @@ data class ResponseModel(
 )
 ```
 
-3. **Create Repository:**
+3. **Create Repository** (with suspend functions):
 ```kotlin
 class FeatureRepository(private val api: FeatureApi) {
-    fun getData(param: String): Observable<ResponseModel> {
+    suspend fun getData(param: String): ResponseModel {
         return api.getData(param)
     }
 }
 ```
 
-4. **Create Repository factory** in `Repository.kt`
+4. **Create UseCase** in `domain` module:
+```kotlin
+class GetDataUseCase(private val repository: FeatureRepository) {
+    suspend fun execute(param: String): ProcessedData {
+        val response = repository.getData(param)
+        return processResponse(response)
+    }
+}
+```
 
-5. **Create UseCase** in `domain` module
-
-6. **Wire up in Koin modules**
+5. **Wire up in Koin modules**
 
 ### Adding Dependencies
 

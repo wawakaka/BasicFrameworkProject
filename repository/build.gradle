@@ -6,7 +6,11 @@ android {
 
 dependencies {
     implementation project(':restapi')
-    implementation libs.rxjava
+
+    // Kotlin Coroutines
+    implementation libs.kotlinx.coroutines.core
+
+    // Networking
     implementation libs.retrofit
     implementation libs.gson
 }

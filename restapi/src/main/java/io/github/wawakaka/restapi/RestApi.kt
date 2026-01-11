@@ -6,13 +6,10 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.internal.bind.DateTypeAdapter
 import com.readystatesoftware.chuck.ChuckInterceptor
-import io.reactivex.schedulers.Schedulers
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.CallAdapter
 import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -27,7 +24,6 @@ object RestApi {
                 chuckInterceptor = provideChuckInterceptor(application)
             ),
             baseUrl = baseUrl,
-            callAdapterFactory = provideCallAdapterFactory(),
             gson = provideGson()
         )
     }
@@ -35,15 +31,12 @@ object RestApi {
     private fun provideServerRetrofit(
         okHttpClient: OkHttpClient,
         baseUrl: String,
-        callAdapterFactory: CallAdapter.Factory,
         gson: Gson
     ): Retrofit {
         return Retrofit.Builder()
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create(gson))
-            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
             .baseUrl(baseUrl)
-            .addCallAdapterFactory(callAdapterFactory)
             .build()
     }
 
@@ -71,10 +64,6 @@ object RestApi {
         httpLoggingInterceptor.level =
             if (logEnabled) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
         return httpLoggingInterceptor
-    }
-
-    private fun provideCallAdapterFactory(): CallAdapter.Factory {
-        return RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io())
     }
 
     private fun provideGson(): Gson {

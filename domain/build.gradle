@@ -6,6 +6,8 @@ android {
 
 dependencies {
     implementation project(':repository')
-    implementation libs.rxjava
-    implementation libs.rxandroid
+
+    // Kotlin Coroutines
+    implementation libs.kotlinx.coroutines.core
+    implementation libs.kotlinx.coroutines.android
 }
