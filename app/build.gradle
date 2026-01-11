@@ -68,9 +68,13 @@ dependencies {
     // Material Design
     implementation libs.material
 
-    // RxJava
-    implementation libs.rxjava
-    implementation libs.rxbinding
+    // Kotlin Coroutines
+    implementation libs.kotlinx.coroutines.core
+    implementation libs.kotlinx.coroutines.android
+    implementation libs.androidx.lifecycle.viewmodel.ktx
+    implementation libs.androidx.lifecycle.runtime.ktx
+
+    // RxJava (keeping RxPermissions for M4 migration)
     implementation libs.rxpermissions
 
     // Utilities

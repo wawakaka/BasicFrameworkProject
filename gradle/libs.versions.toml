@@ -21,11 +21,13 @@ androidxNavigation = "2.7.6"
 # Material Design
 material = "1.11.0"
 
-# Reactive Programming
-rxJava = "2.2.21"
-rxKotlin = "2.4.0"
-rxAndroid = "2.1.1"
-rxBinding = "3.1.0"
+# Kotlin Coroutines
+coroutines = "1.7.3"
+
+# Android Lifecycle
+androidxLifecycle = "2.7.0"
+
+# Reactive Programming (keeping RxPermissions for M4 migration)
 rxPermissions = "0.12"
 
 # Networking
@@ -65,17 +67,20 @@ androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation
 # Material Design
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
-# RxJava
-rxjava = { group = "io.reactivex.rxjava2", name = "rxjava", version.ref = "rxJava" }
-rxkotlin = { group = "io.reactivex.rxjava2", name = "rxkotlin", version.ref = "rxKotlin" }
-rxandroid = { group = "io.reactivex.rxjava2", name = "rxandroid", version.ref = "rxAndroid" }
-rxbinding = { group = "com.jakewharton.rxbinding3", name = "rxbinding", version.ref = "rxBinding" }
+# Kotlin Coroutines
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+
+# AndroidX Lifecycle with Coroutines
+androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "androidxLifecycle" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
+
+# RxJava (keeping RxPermissions for MainPresenter until M4)
 rxpermissions = { group = "com.github.tbruyelle", name = "rxpermissions", version.ref = "rxPermissions" }
 
 # Networking
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
-retrofit-adapter-rxjava2 = { group = "com.squareup.retrofit2", name = "adapter-rxjava2", version.ref = "retrofit" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }

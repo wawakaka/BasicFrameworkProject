@@ -3,8 +3,6 @@ package io.github.wawakaka.basicframeworkproject.utilities
 import android.content.Context
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import io.reactivex.Observable
-import java.util.concurrent.TimeUnit
 
 fun View.makeVisible() {
     this.visibility = View.VISIBLE

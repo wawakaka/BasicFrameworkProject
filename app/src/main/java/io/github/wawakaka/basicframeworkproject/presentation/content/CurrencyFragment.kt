@@ -8,24 +8,20 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.jakewharton.rxbinding3.view.clicks
 import io.github.wawakaka.basicframeworkproject.R
 import io.github.wawakaka.basicframeworkproject.base.BaseFragment
 import io.github.wawakaka.basicframeworkproject.presentation.content.adapter.CurrencyListAdapter
 import io.github.wawakaka.basicframeworkproject.utilities.makeInvisible
 import io.github.wawakaka.basicframeworkproject.utilities.makeVisible
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_currency.*
+import kotlinx.coroutines.launch
 import org.koin.androidx.scope.createScope
 import org.koin.core.scope.Scope
-import java.util.concurrent.TimeUnit
 
 class CurrencyFragment : BaseFragment(), CurrencyContract.View {
 
-    private val compositeDisposable: CompositeDisposable = CompositeDisposable()
     private val scope: Scope by lazy { createScope(this) }
     private val presenter: CurrencyPresenter by scope.inject()
 
@@ -44,7 +40,6 @@ class CurrencyFragment : BaseFragment(), CurrencyContract.View {
     }
 
     override fun onDestroy() {
-        compositeDisposable.clear()
         presenter.detach()
         scope.close()
         super.onDestroy()
@@ -81,15 +76,11 @@ class CurrencyFragment : BaseFragment(), CurrencyContract.View {
     }
 
     private fun initGoButton() {
-        button_go.clicks()
-            .observeOn(Schedulers.io())
-            .debounce(500, TimeUnit.MILLISECONDS)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                { presenter.onButtonClickedEvent() },
-                { Log.e(TAG, "initGoButton", it) }
-            )
-            .let(compositeDisposable::add)
+        button_go.setOnClickListener {
+            lifecycleScope.launch {
+                presenter.onButtonClickedEvent()
+            }
+        }
     }
 
     private fun initProgressbar() {
