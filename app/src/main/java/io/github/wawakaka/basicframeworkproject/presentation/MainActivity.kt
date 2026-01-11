@@ -9,14 +9,15 @@ import androidx.core.content.ContextCompat
 import io.github.wawakaka.basicframeworkproject.R
 import io.github.wawakaka.basicframeworkproject.base.BaseActivity
 import io.github.wawakaka.basicframeworkproject.base.FragmentActivityCallbacks
-import kotlinx.android.synthetic.main.activity_main.*
-import org.koin.androidx.scope.createScope
+import io.github.wawakaka.basicframeworkproject.databinding.ActivityMainBinding
+import org.koin.android.ext.android.getKoin
 import org.koin.core.scope.Scope
 
 class MainActivity : BaseActivity(), FragmentActivityCallbacks, MainContract.View {
 
-    private val scope: Scope by lazy { createScope(this) }
-    private val presenter: MainPresenter by scope.inject()
+    private lateinit var binding: ActivityMainBinding
+    private var scope: Scope? = null
+    private lateinit var presenter: MainPresenter
 
     // Register permission launcher (must be before onCreate returns)
     private val requestPermissionLauncher = registerForActivityResult(
@@ -27,14 +28,19 @@ class MainActivity : BaseActivity(), FragmentActivityCallbacks, MainContract.Vie
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Initialize Koin presenter
+        presenter = getKoin().get<MainPresenter>()
+
         presenter.attach(this)
         init()
     }
 
     override fun onDestroy() {
         presenter.detach()
-        scope.close()
+        scope?.close()
         super.onDestroy()
     }
 
@@ -85,7 +91,7 @@ class MainActivity : BaseActivity(), FragmentActivityCallbacks, MainContract.Vie
     }
 
     private fun init() {
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
         presenter.checkPermission()
     }
 

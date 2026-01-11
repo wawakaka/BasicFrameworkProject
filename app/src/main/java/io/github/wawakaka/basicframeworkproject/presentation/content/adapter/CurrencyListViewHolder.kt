@@ -2,9 +2,11 @@ package io.github.wawakaka.basicframeworkproject.presentation.content.adapter
 
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.layout_currency_item.view.*
+import io.github.wawakaka.basicframeworkproject.databinding.LayoutCurrencyItemBinding
 
 class CurrencyListViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
+    private val binding = LayoutCurrencyItemBinding.bind(itemView)
 
     fun bindViews(data: Pair<String, Double>, clickListener: ((kurs: String) -> Unit)?) {
         setCurrencyCode(data.first)
@@ -13,15 +15,15 @@ class CurrencyListViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
     }
 
     private fun setCurrencyCode(code: String) {
-        itemView.text_currency_code.text = code
+        binding.textCurrencyCode.text = code
     }
 
     private fun setCurrencyValue(value: Double) {
-        itemView.text_currency_value.text = value.toString()
+        binding.textCurrencyValue.text = value.toString()
     }
 
     private fun setClickListener(value: Double, clickListener: ((kurs: String) -> Unit)?) {
-        itemView.container.setOnClickListener { clickListener?.invoke(value.toString()) }
+        binding.container.setOnClickListener { clickListener?.invoke(value.toString()) }
     }
 
 }

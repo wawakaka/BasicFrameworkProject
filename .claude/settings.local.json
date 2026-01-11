@@ -10,7 +10,16 @@
       "Bash(./gradlew clean build:*)",
       "Bash(cat:*)",
       "Bash(git checkout:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(./gradlew:*)",
+      "Bash(echo:*)",
+      "Bash(grep:*)",
+      "Bash(git reset:*)",
+      "Bash(ls:*)",
+      "Bash(git restore:*)",
+      "Bash(git stash:*)",
+      "Bash(update-alternatives:*)",
+      "Bash(JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew compileDebugKotlin:*)"
     ]
   },
   "outputStyle": "default"

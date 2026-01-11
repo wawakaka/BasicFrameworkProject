@@ -1,6 +1,7 @@
 package io.github.wawakaka.restapi
 
 import android.app.Application
+import android.util.Log
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -20,7 +21,7 @@ object RestApi {
         return provideServerRetrofit(
             okHttpClient = provideOkHttpClient(
                 headerInterceptor = HeaderInterceptor(),
-                loggingInterceptor = provideHttpLoggingInterceptor(BuildConfig.DEBUG),
+                loggingInterceptor = provideHttpLoggingInterceptor(isDebug = true),
                 chuckInterceptor = provideChuckInterceptor(application)
             ),
             baseUrl = baseUrl,
@@ -59,10 +60,10 @@ object RestApi {
         return ChuckInterceptor(application)
     }
 
-    private fun provideHttpLoggingInterceptor(logEnabled: Boolean): Interceptor {
+    private fun provideHttpLoggingInterceptor(isDebug: Boolean): Interceptor {
         val httpLoggingInterceptor = HttpLoggingInterceptor()
         httpLoggingInterceptor.level =
-            if (logEnabled) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
+            if (isDebug) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
         return httpLoggingInterceptor
     }
 

@@ -5,7 +5,7 @@ minSdk = "26"
 targetSdk = "34"
 
 # Build Tools
-agp = "8.2.2"
+agp = "7.4.2"
 kotlin = "2.0.21"
 
 # AndroidX Core
@@ -37,9 +37,6 @@ gson = "2.10.1"
 
 # Dependency Injection
 koin = "3.5.3"
-
-# Utilities
-anko = "0.10.8"
 
 # Development Tools
 chuck = "1.1.0"
@@ -87,10 +84,8 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 
 # Dependency Injection
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
-koin-androidx-scope = { group = "io.insert-koin", name = "koin-androidx-scope", version.ref = "koin" }
 
-# Utilities
-anko = { group = "org.jetbrains.anko", name = "anko", version.ref = "anko" }
+# Development Tools
 chuck = { group = "com.readystatesoftware.chuck", name = "library", version.ref = "chuck" }
 
 # Testing

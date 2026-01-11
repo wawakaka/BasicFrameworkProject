@@ -12,49 +12,62 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.wawakaka.basicframeworkproject.R
 import io.github.wawakaka.basicframeworkproject.base.BaseFragment
+import io.github.wawakaka.basicframeworkproject.databinding.FragmentCurrencyBinding
 import io.github.wawakaka.basicframeworkproject.presentation.content.adapter.CurrencyListAdapter
 import io.github.wawakaka.basicframeworkproject.utilities.makeInvisible
 import io.github.wawakaka.basicframeworkproject.utilities.makeVisible
-import kotlinx.android.synthetic.main.fragment_currency.*
 import kotlinx.coroutines.launch
-import org.koin.androidx.scope.createScope
+import org.koin.android.ext.android.getKoin
 import org.koin.core.scope.Scope
 
 class CurrencyFragment : BaseFragment(), CurrencyContract.View {
 
-    private val scope: Scope by lazy { createScope(this) }
-    private val presenter: CurrencyPresenter by scope.inject()
+    private var _binding: FragmentCurrencyBinding? = null
+    private val binding get() = _binding!!
+
+    private var scope: Scope? = null
+    private lateinit var presenter: CurrencyPresenter
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_currency, container, false)
+    ): View {
+        _binding = FragmentCurrencyBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Initialize Koin presenter
+        presenter = getKoin().get<CurrencyPresenter>()
+
         presenter.attach(this)
         init()
     }
 
-    override fun onDestroy() {
+    override fun onDestroyView() {
         presenter.detach()
-        scope.close()
+        _binding = null
+        super.onDestroyView()
+    }
+
+    override fun onDestroy() {
+        scope?.close()
         super.onDestroy()
     }
 
     override fun showLoading() {
-        progress_loading.makeVisible()
+        binding.progressLoading.makeVisible()
     }
 
     override fun hideLoading() {
-        progress_loading.makeInvisible()
+        binding.progressLoading.makeInvisible()
     }
 
     override fun onGetDataSuccess(data: List<Pair<String, Double>>) {
-        recycler_currency.apply {
+        binding.recyclerCurrency.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = CurrencyListAdapter(data).apply {
                 this.clickListener = {
@@ -76,7 +89,7 @@ class CurrencyFragment : BaseFragment(), CurrencyContract.View {
     }
 
     private fun initGoButton() {
-        button_go.setOnClickListener {
+        binding.buttonGo.setOnClickListener {
             lifecycleScope.launch {
                 presenter.onButtonClickedEvent()
             }
@@ -85,7 +98,7 @@ class CurrencyFragment : BaseFragment(), CurrencyContract.View {
 
     private fun initProgressbar() {
         context?.let {
-            progress_loading.indeterminateDrawable.setColorFilter(
+            binding.progressLoading.indeterminateDrawable.setColorFilter(
                 ContextCompat.getColor(
                     it,
                     R.color.colorPrimary
