@@ -1,6 +1,6 @@
 # CLAUDE.md - AI Assistant Guide for BasicFrameworkProject
 
-**Last Updated:** 2026-01-11 (Milestone 4 Complete)
+**Last Updated:** 2026-01-11 (Milestone 5 Phase 4 Complete)
 **Project Version:** 1.0
 **Target SDK:** Android 14 (API 34)
 
@@ -27,7 +27,7 @@
 
 ### Key Characteristics
 - **Package Name:** `io.github.wawakaka.basicframeworkproject`
-- **Language:** Kotlin 2.0.21
+- **Language:** Kotlin 1.9.22 (downgraded from 2.0.21 for Compose compatibility)
 - **Build System:** Gradle 8.5
 - **AGP:** 8.2.2
 - **Min SDK:** 26 (Android 8.0)
@@ -39,9 +39,12 @@
 ### Project Purpose
 This is a framework/template project demonstrating professional Android development practices with:
 - Clean Architecture separation
-- Reactive programming patterns
-- Dependency injection
+- MVP architectural pattern
+- Jetpack Compose UI framework (M5+)
+- Kotlin Coroutines for async operations
+- Dependency injection with Koin
 - Modern Android components
+- Material 3 design system
 
 ---
 
@@ -54,8 +57,9 @@ The project follows a strict layered architecture:
 ```
 ┌─────────────────────────────────────────────────┐
 │  Presentation Layer (app module)                │
-│  - Activities, Fragments, Presenters            │
-│  - UI Components, Adapters                      │
+│  - MainActivity (Compose), Presenters           │
+│  - Compose Screens & Components                 │
+│  - Material 3 Theme & Styling                   │
 │  - Koin DI Configuration                        │
 └─────────────────┬───────────────────────────────┘
                   │
@@ -575,6 +579,117 @@ override fun detach() {
 }
 ```
 
+### Jetpack Compose Patterns (M5+)
+
+#### Compose Components
+All Compose components are located in `presentation/components/` and follow these patterns:
+
+**Basic Component Structure:**
+```kotlin
+@Composable
+fun MyComponent(
+    data: String,
+    modifier: Modifier = Modifier
+) {
+    // Component implementation
+}
+
+@Preview
+@Composable
+fun MyComponentPreview() {
+    BasicFrameworkTheme {
+        MyComponent(data = "Preview Data")
+    }
+}
+```
+
+**Key Principles:**
+- All parameters have default values where appropriate
+- Modifier is always the last parameter
+- Each component has a Preview function for Android Studio
+- Use Material 3 color scheme and typography
+
+#### Screen Implementation (MVP Adaptation)
+Screens replace Fragments and implement the MVP View contract:
+
+```kotlin
+@Composable
+fun MyScreen(
+    presenter: MyPresenter = koinInject(),
+    modifier: Modifier = Modifier
+) {
+    var state by remember { mutableStateOf(MyState()) }
+
+    // Create view adapter for MVP contract
+    val view = object : MyContract.View {
+        override fun onSuccess(data: Data) {
+            state = state.copy(data = data)
+        }
+        // ... other methods
+    }
+
+    // Attach presenter on creation
+    LaunchedEffect(Unit) {
+        presenter.attach(view)
+        presenter.loadData()
+    }
+
+    // Cleanup on dispose
+    DisposableEffect(Unit) {
+        onDispose {
+            presenter.detach()
+        }
+    }
+
+    // Render UI based on state
+    MyScreenContent(state = state, modifier = modifier)
+}
+```
+
+**Key Patterns:**
+- Use `mutableStateOf` for state management
+- Create view adapter object implementing Contract.View
+- Use `LaunchedEffect` for initialization and side effects
+- Use `DisposableEffect` for cleanup
+- Inject presenter with `koinInject()`
+
+#### Theme Integration
+All components use Material 3 through `BasicFrameworkTheme`:
+
+```kotlin
+// In MainActivity or root composable
+setContent {
+    BasicFrameworkTheme {
+        // Your UI tree
+    }
+}
+
+// Automatic light/dark theme based on system settings
+```
+
+**Available Resources:**
+- Colors: `MaterialTheme.colorScheme.primary`, `.secondary`, `.error`, etc.
+- Typography: `MaterialTheme.typography.headlineSmall`, `.bodyMedium`, etc.
+- Shapes: `MaterialTheme.shapes.small`, `.medium`, `.large`
+
+#### Navigation (Compose Navigation)
+Type-safe navigation with Compose:
+
+```kotlin
+val navController = rememberNavController()
+NavHost(
+    navController = navController,
+    startDestination = "home"
+) {
+    composable("home") {
+        HomeScreen()
+    }
+    composable("details/{id}") { backStackEntry ->
+        DetailsScreen(id = backStackEntry.arguments?.getString("id"))
+    }
+}
+```
+
 ### Error Handling
 
 **In Presenters (with Coroutines):**
@@ -591,11 +706,22 @@ presenterScope.launch {
 }
 ```
 
-**In Views:**
+**In Compose Views:**
 ```kotlin
-override fun onGetDataFailed(throwable: Throwable) {
-    Log.e(TAG, "Error: ${throwable.message}")
-    // Show error message to user
+// State management for errors
+var error by remember { mutableStateOf<String?>(null) }
+
+// In LaunchedEffect or button click
+try {
+    val data = someOperation()
+    // success
+} catch (e: Exception) {
+    error = e.message
+}
+
+// Render error UI
+if (error != null) {
+    ErrorMessage(message = error!!)
 }
 ```
 
@@ -1063,6 +1189,39 @@ dependencies {
 ---
 
 ## Change Log
+
+### 2026-01-11 (Milestone 5 Phase 4 Complete - Testing & Cleanup)
+- **Milestone 5 Phase 4: Testing & Cleanup**
+  - Removed all legacy XML layout files (activity_main.xml, fragment_currency.xml, layout_currency_item.xml)
+  - Removed legacy Fragment and Adapter code (CurrencyFragment.kt, CurrencyListAdapter.kt, CurrencyListViewHolder.kt)
+  - Updated CurrencyModule to use factory pattern (removed Fragment scope binding)
+  - Verified Android Manifest (no unused references)
+  - Removed unused imports from MainActivity
+  - Updated CLAUDE.md with Jetpack Compose patterns and best practices
+  - Updated Project Overview to document Compose UI framework
+  - Updated Architecture diagram to reflect Compose-based Presentation Layer
+  - Complete cleanup allows for Phase 5: finalization and Milestone 6 transition
+- **Build Status:** ✅ BUILD SUCCESSFUL with all legacy code removed
+- **Total Legacy Code Removed:** 3 XML files, 3 Kotlin files, 1 directory
+- **Import Cleanup:** Removed 4 unused Compose state imports from MainActivity
+
+### 2026-01-11 (Milestone 5 Phases 1-3 Complete - Compose Implementation)
+- **Milestone 5 Phase 1: Compose Setup**
+  - Added Compose BOM 2024.09.00 and Material 3 1.2.1
+  - Created Material 3 theme infrastructure (Color.kt, Type.kt, Theme.kt)
+  - Configured Compose in app/build.gradle with kotlinCompilerExtensionVersion = "1.5.10"
+  - Downgraded Kotlin to 1.9.22 for Compose compatibility
+- **Milestone 5 Phase 2: Compose Component Layer**
+  - Created 5 reusable Compose components (AppTopBar, LoadingIndicator, ErrorMessage, CurrencyListItem, CurrencyContent)
+  - Created CurrencyScreen composable replacing Fragment
+  - Converted MainActivity to Compose with setContent()
+  - Added koin-androidx-compose 3.5.3 for DI integration
+  - All components include preview functions for Android Studio
+- **Milestone 5 Phase 3: Navigation & Integration**
+  - Integrated Compose Navigation (androidx.navigation:navigation-compose:2.7.7)
+  - Created NavHost with type-safe routing
+  - Set up proper navigation scaffolding in MainActivity
+  - Foundation ready for multi-screen navigation expansion
 
 ### 2026-01-11 (Milestone 4 Complete - Permission Modernization)
 - **Milestone 4: Migrate RxPermissions to ActivityResultContracts**
