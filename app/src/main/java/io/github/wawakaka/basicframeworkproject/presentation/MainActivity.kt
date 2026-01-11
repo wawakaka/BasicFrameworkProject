@@ -4,19 +4,24 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.core.content.ContextCompat
-import io.github.wawakaka.basicframeworkproject.R
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import io.github.wawakaka.basicframeworkproject.base.BaseActivity
 import io.github.wawakaka.basicframeworkproject.base.FragmentActivityCallbacks
-import kotlinx.android.synthetic.main.activity_main.*
-import org.koin.androidx.scope.createScope
-import org.koin.core.scope.Scope
+import io.github.wawakaka.basicframeworkproject.presentation.components.AppTopBar
+import io.github.wawakaka.basicframeworkproject.presentation.screens.CurrencyScreen
+import io.github.wawakaka.basicframeworkproject.theme.BasicFrameworkTheme
+import org.koin.android.ext.android.getKoin
 
 class MainActivity : BaseActivity(), FragmentActivityCallbacks, MainContract.View {
 
-    private val scope: Scope by lazy { createScope(this) }
-    private val presenter: MainPresenter by scope.inject()
+    private lateinit var presenter: MainPresenter
 
     // Register permission launcher (must be before onCreate returns)
     private val requestPermissionLauncher = registerForActivityResult(
@@ -27,23 +32,41 @@ class MainActivity : BaseActivity(), FragmentActivityCallbacks, MainContract.Vie
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+
+        // Initialize Koin presenter
+        presenter = getKoin().get<MainPresenter>()
+
         presenter.attach(this)
+
+        // Use Compose for UI
+        setContent {
+            BasicFrameworkTheme {
+                val navController = rememberNavController()
+                Column(modifier = androidx.compose.ui.Modifier.fillMaxSize()) {
+                    AppTopBar(title = "BasicFramework")
+                    NavHost(
+                        navController = navController,
+                        startDestination = "currency",
+                        modifier = androidx.compose.ui.Modifier.fillMaxSize()
+                    ) {
+                        composable("currency") {
+                            CurrencyScreen()
+                        }
+                    }
+                }
+            }
+        }
+
         init()
     }
 
     override fun onDestroy() {
         presenter.detach()
-        scope.close()
         super.onDestroy()
     }
 
     override fun setToolbar(title: String, showUpButton: Boolean) {
-        supportActionBar?.apply {
-            this.title = title
-            this.setDisplayShowHomeEnabled(true)
-            this.setDisplayHomeAsUpEnabled(true)
-        }
+        // TODO: Update Compose toolbar title dynamically
     }
 
     override fun requestCameraPermission() {
@@ -85,7 +108,6 @@ class MainActivity : BaseActivity(), FragmentActivityCallbacks, MainContract.Vie
     }
 
     private fun init() {
-        setSupportActionBar(toolbar)
         presenter.checkPermission()
     }
 

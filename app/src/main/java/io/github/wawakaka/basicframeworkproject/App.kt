@@ -4,7 +4,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
 import androidx.multidex.MultiDexApplication
-import org.jetbrains.anko.notificationManager
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -21,7 +20,7 @@ class App : MultiDexApplication() {
     private fun initKoin() {
         startKoin {
             // enable log for debug build
-            if (BuildConfig.DEBUG) androidLogger(level = Level.DEBUG)
+            androidLogger(level = Level.DEBUG)
             // declare used Android context
             androidContext(this@App)
             // declare modules
@@ -31,6 +30,7 @@ class App : MultiDexApplication() {
 
     private fun initNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(
                 NotificationChannel(
                     "default",

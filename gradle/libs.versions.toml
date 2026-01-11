@@ -5,8 +5,8 @@ minSdk = "26"
 targetSdk = "34"
 
 # Build Tools
-agp = "8.2.2"
-kotlin = "2.0.21"
+agp = "7.4.2"
+kotlin = "1.9.22"
 
 # AndroidX Core
 androidxCore = "1.12.0"
@@ -30,6 +30,11 @@ androidxLifecycle = "2.7.0"
 # AndroidX Activity (for ActivityResultContracts)
 androidxActivity = "1.8.1"
 
+# Jetpack Compose (M5 Migration)
+composeBom = "2024.09.00"
+composeMaterial3 = "1.2.1"
+composeNavigation = "2.7.7"
+
 # Networking
 retrofit = "2.9.0"
 okhttp = "4.12.0"
@@ -37,9 +42,7 @@ gson = "2.10.1"
 
 # Dependency Injection
 koin = "3.5.3"
-
-# Utilities
-anko = "0.10.8"
+koinCompose = "3.5.3"
 
 # Development Tools
 chuck = "1.1.0"
@@ -78,6 +81,21 @@ androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecyc
 # AndroidX Activity (for ActivityResultContracts)
 androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidxActivity" }
 
+# Jetpack Compose (M5 Migration)
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+compose-material = { group = "androidx.compose.material", name = "material" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "composeMaterial3" }
+compose-runtime = { group = "androidx.compose.runtime", name = "runtime" }
+compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+compose-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "composeNavigation" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
+
 # Networking
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
@@ -87,10 +105,9 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 
 # Dependency Injection
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
-koin-androidx-scope = { group = "io.insert-koin", name = "koin-androidx-scope", version.ref = "koin" }
+koin-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koinCompose" }
 
-# Utilities
-anko = { group = "org.jetbrains.anko", name = "anko", version.ref = "anko" }
+# Development Tools
 chuck = { group = "com.readystatesoftware.chuck", name = "library", version.ref = "chuck" }
 
 # Testing
