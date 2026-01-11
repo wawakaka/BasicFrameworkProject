@@ -1,6 +1,7 @@
 package io.github.wawakaka.basicframeworkproject.presentation.screens
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,8 +59,11 @@ fun CurrencyScreen(
     }
 
     // Detach when composable is disposed
-    // Note: In a real implementation, you might use DisposableEffect or manage this differently
-    // For now, we'll handle cleanup at the Fragment/Activity level
+    DisposableEffect(Unit) {
+        onDispose {
+            presenter.detach()
+        }
+    }
 
     CurrencyContent(
         isLoading = isLoading,

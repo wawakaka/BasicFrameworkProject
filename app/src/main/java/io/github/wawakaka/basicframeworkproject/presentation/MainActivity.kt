@@ -13,9 +13,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import io.github.wawakaka.basicframeworkproject.base.BaseActivity
 import io.github.wawakaka.basicframeworkproject.base.FragmentActivityCallbacks
 import io.github.wawakaka.basicframeworkproject.presentation.components.AppTopBar
+import io.github.wawakaka.basicframeworkproject.presentation.screens.CurrencyScreen
 import io.github.wawakaka.basicframeworkproject.theme.BasicFrameworkTheme
 import org.koin.android.ext.android.getKoin
 
@@ -41,9 +45,18 @@ class MainActivity : BaseActivity(), FragmentActivityCallbacks, MainContract.Vie
         // Use Compose for UI
         setContent {
             BasicFrameworkTheme {
+                val navController = rememberNavController()
                 Column(modifier = androidx.compose.ui.Modifier.fillMaxSize()) {
                     AppTopBar(title = "BasicFramework")
-                    // NavHost will be added here in Phase 3
+                    NavHost(
+                        navController = navController,
+                        startDestination = "currency",
+                        modifier = androidx.compose.ui.Modifier.fillMaxSize()
+                    ) {
+                        composable("currency") {
+                            CurrencyScreen()
+                        }
+                    }
                 }
             }
         }
