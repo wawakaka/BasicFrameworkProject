@@ -1,8 +1,8 @@
 # CLAUDE.md - AI Assistant Guide for BasicFrameworkProject
 
-**Last Updated:** 2026-01-10
+**Last Updated:** 2026-01-10 (Milestone 1 Complete)
 **Project Version:** 1.0
-**Target SDK:** Android 10 (API 29)
+**Target SDK:** Android 14 (API 34)
 
 ---
 
@@ -27,10 +27,13 @@
 
 ### Key Characteristics
 - **Package Name:** `io.github.wawakaka.basicframeworkproject`
-- **Language:** Kotlin 1.3.72
-- **Build System:** Gradle 7.0.0
+- **Language:** Kotlin 2.0.21
+- **Build System:** Gradle 8.5
+- **AGP:** 8.2.2
 - **Min SDK:** 26 (Android 8.0)
-- **Target SDK:** 29 (Android 10)
+- **Target SDK:** 34 (Android 14)
+- **Compile SDK:** 34
+- **JDK:** 21 (recommended, 17+ required)
 - **Primary Feature:** Currency exchange rate display
 
 ### Project Purpose
@@ -270,42 +273,51 @@ restapi/
 
 | Category | Technology | Version | Purpose |
 |----------|-----------|---------|---------|
-| **Language** | Kotlin | 1.3.72 | Primary development language |
-| **Build** | Gradle | 7.0.0 | Build automation |
-| **UI Framework** | Android SDK | API 29 | Application framework |
+| **Language** | Kotlin | 2.0.21 | Primary development language |
+| **Build** | Gradle | 8.5 | Build automation |
+| **AGP** | Android Gradle Plugin | 8.2.2 | Android build system |
+| **JDK** | Java Development Kit | 21 | Build target (17+ required) |
+| **UI Framework** | Android SDK | API 34 | Application framework |
 
 ### Key Libraries
 
 #### Reactive Programming
-- **RxJava 2:** `2.2.10` - Reactive streams
-- **RxKotlin:** `2.3.0` - Kotlin extensions for RxJava
+- **RxJava 2:** `2.2.21` - Reactive streams (final 2.x version)
+- **RxKotlin:** `2.4.0` - Kotlin extensions for RxJava
 - **RxAndroid:** `2.1.1` - Android schedulers
 - **RxBinding:** `3.1.0` - UI event bindings
-- **RxPermissions:** `0.10.2` - Permission handling
+- **RxPermissions:** `0.12` - Permission handling
 
 #### Networking
 - **Retrofit:** `2.9.0` - REST API client
-- **OkHttp:** `4.7.2` - HTTP client
-- **Gson:** `2.8.6` - JSON serialization
+- **OkHttp:** `4.12.0` - HTTP client
+- **Gson:** `2.10.1` - JSON serialization
 - **Chuck:** `1.1.0` - Network debugging
 
 #### Dependency Injection
-- **Koin:** `2.0.1` - Lightweight DI framework
-- **Koin Android Scope:** `2.0.1` - Android lifecycle scopes
+- **Koin:** `3.5.3` - Lightweight DI framework
+- **Koin Android Scope:** `3.5.3` - Android lifecycle scopes
+- **⚠️ Breaking Change:** Koin 3.x has API changes from 2.x
 
 #### UI Components
-- **AndroidX AppCompat:** `1.1.0`
-- **Material Design:** `1.1.0`
-- **ConstraintLayout:** `1.1.3`
-- **Navigation Component:** `2.3.0`
-- **Anko:** `0.10.8` - Kotlin helpers
+- **AndroidX Core KTX:** `1.12.0`
+- **AndroidX AppCompat:** `1.6.1`
+- **Material Design:** `1.11.0`
+- **ConstraintLayout:** `2.1.4`
+- **Navigation Component:** `2.7.6`
+- **ViewBinding:** Enabled (replaces Kotlin Synthetics)
+- **Anko:** `0.10.8` - Kotlin helpers (deprecated, consider removing)
 
 #### Other
 - **MultiDex:** `2.0.1` - Support for large apps
 
+#### Testing
+- **JUnit:** `4.13.2` - Unit testing framework
+
 ### Repository Information
-- **Maven Repositories:** Google, JCenter, JitPack
-- **Dependency Management:** Centralized in `dependencies.gradle`
+- **Maven Repositories:** Google, Maven Central, JitPack
+- **⚠️ Note:** JCenter removed (deprecated)
+- **Dependency Management:** Gradle Version Catalog (`gradle/libs.versions.toml`)
 
 ---
 
@@ -354,12 +366,29 @@ restapi/
 
 **Key Files:**
 - `build.gradle` (root) - Project-level configuration
-- `dependencies.gradle` - Centralized dependency versions
+- `gradle/libs.versions.toml` - **Gradle Version Catalog** (centralized dependency management)
 - `settings.gradle` - Module inclusions
-- `gradle.properties` - Build properties
+- `gradle.properties` - Build properties with modern Gradle features
 - `dep/build-lib.gradle` - Shared library module template
 
-**Version Variables:** Defined in `dependencies.gradle` with `ext` block
+**Dependency Management:**
+- Uses **Gradle Version Catalog** for type-safe dependency accessors
+- Access dependencies via `libs.*` in build.gradle files
+- All versions centralized in `gradle/libs.versions.toml`
+- Supports IDE auto-completion for dependencies
+
+**Version Catalog Structure:**
+```toml
+[versions]
+kotlin = "1.9.22"
+retrofit = "2.9.0"
+
+[libraries]
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+```
 
 ### Module Dependencies
 
@@ -684,26 +713,32 @@ class FeatureRepository(private val api: FeatureApi) {
 
 ### Adding Dependencies
 
-1. **Add version variable** to `dependencies.gradle`:
-```kotlin
-ext {
-    newlib = "1.0.0"
-}
+**Using Gradle Version Catalog (Current Approach):**
+
+1. **Add version** to `gradle/libs.versions.toml` in `[versions]` section:
+```toml
+[versions]
+newlib = "1.0.0"
 ```
 
-2. **Add library definition** to `lib` map:
-```kotlin
-lib = [
-    newlib: "com.example:newlib:$newlib"
-]
+2. **Add library definition** to `[libraries]` section:
+```toml
+[libraries]
+newlib = { group = "com.example", name = "newlib", version.ref = "newlib" }
 ```
 
 3. **Add to module's `build.gradle`:**
 ```kotlin
 dependencies {
-    implementation lib.newlib
+    implementation libs.newlib  // Note: libs (not lib)
 }
 ```
+
+**Benefits:**
+- Type-safe accessors with IDE auto-completion
+- Centralized version management
+- Automatic dependency conflict resolution
+- No manual string concatenation
 
 ### Handling Permissions
 
@@ -815,15 +850,36 @@ dependencies {
 ```
 
 #### 5. Dependency Injection
-**Use Koin properly:**
+**Use Koin 3.x properly:**
+- **⚠️ Breaking Change:** Project uses Koin 3.5.3 (migrated from 2.0.1)
 - Create feature-specific modules
 - Use appropriate scopes (`factory`, `single`, `scope<Activity>`)
 - Add modules to `applicationModules` list in `Modules.kt`
+- **Note:** Some Koin APIs changed in 3.x - check imports and method calls
+- Import paths may have changed (e.g., `org.koin.android.ext.android`)
 
 #### 6. View Binding
-**Note:** Project uses Kotlin Synthetics (deprecated)
-- When modernizing, migrate to ViewBinding or Jetpack Compose
-- Don't mix binding approaches
+**Current State:** ViewBinding is enabled
+- **⚠️ Migration Needed:** Code still uses Kotlin Synthetics (deprecated since Kotlin 1.4.20)
+- **Action Required:** Update all Activities/Fragments to use ViewBinding
+- **Do not** mix Kotlin Synthetics and ViewBinding
+- **Next Step:** Full migration to Jetpack Compose (Milestone 2)
+
+**ViewBinding Pattern:**
+```kotlin
+private var _binding: FragmentFeatureBinding? = null
+private val binding get() = _binding!!
+
+override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    _binding = FragmentFeatureBinding.inflate(inflater, container, false)
+    return binding.root
+}
+
+override fun onDestroyView() {
+    _binding = null  // Prevent memory leaks
+    super.onDestroyView()
+}
+```
 
 #### 7. Error Handling
 **Implement proper error callbacks:**
@@ -914,13 +970,38 @@ dependencies {
 ### Project-Specific
 
 - **README.md** - Project overview
+- **MIGRATION_M1.md** - Milestone 1 migration guide (Gradle 8.5, AGP 8.2.2, Version Catalog)
 - **API Documentation** - https://api.ratesapi.io/
+- **Gradle Version Catalog** - https://docs.gradle.org/current/userguide/platforms.html
 
 ---
 
 ## Change Log
 
-### 2026-01-10
+### 2026-01-10 (Milestone 1 Complete - Enhanced)
+- **Milestone 1: Modernization Complete**
+  - Upgraded Gradle 6.1.1 → 8.5
+  - Upgraded AGP 7.0.0 → 8.2.2
+  - Upgraded Kotlin 1.3.72 → 2.0.21 (Kotlin 2.x with K2 compiler)
+  - Upgraded JDK target 17 → 21 (LTS)
+  - Implemented Gradle Version Catalog for dependency management
+  - Updated all AndroidX libraries to latest versions
+  - Updated Koin 2.0.1 → 3.5.3 with breaking changes fixed
+  - Removed deprecated jcenter() repository
+  - Removed deprecated kotlin-android-extensions plugin
+  - Enabled ViewBinding (migration deferred to Milestone 2 - Compose)
+  - Added namespace declarations to all modules
+  - Updated targetSdk 29 → 34
+  - Fixed Koin 3.x breaking changes (scope management)
+  - Implemented manual scope creation with createScope() for Activities/Fragments
+  - Proper scope lifecycle management (lazy init, close on destroy)
+- Updated Technology Stack section with Kotlin 2.0.21 and JDK 21
+- Updated Gradle Configuration section for Version Catalog
+- Updated Common Tasks section with new dependency management approach
+- Added Koin 3.x migration examples with scope management patterns
+- Documented JDK 21 compatibility
+
+### 2026-01-10 (Initial)
 - Initial CLAUDE.md creation
 - Documented current architecture state
 - Added comprehensive guidelines for AI assistants

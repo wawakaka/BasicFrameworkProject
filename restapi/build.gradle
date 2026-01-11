@@ -1,10 +1,14 @@
 apply from: "$rootDir/dep/build-lib.gradle"
 
+android {
+    namespace 'io.github.wawakaka.restapi'
+}
+
 dependencies {
-    implementation lib.retrofit
-    implementation lib.convertergson
-    implementation lib.adapterrxjava2
-    implementation lib.okhttp
-    implementation lib.logginginterceptor
-    implementation lib.chuck
+    implementation libs.retrofit
+    implementation libs.retrofit.converter.gson
+    implementation libs.retrofit.adapter.rxjava2
+    implementation libs.okhttp
+    implementation libs.okhttp.logging.interceptor
+    implementation libs.chuck
 }

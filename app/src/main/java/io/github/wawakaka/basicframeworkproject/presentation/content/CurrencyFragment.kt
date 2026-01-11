@@ -19,13 +19,15 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_currency.*
-import org.koin.androidx.scope.currentScope
+import org.koin.androidx.scope.createScope
+import org.koin.core.scope.Scope
 import java.util.concurrent.TimeUnit
 
 class CurrencyFragment : BaseFragment(), CurrencyContract.View {
 
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
-    private val presenter: CurrencyPresenter by currentScope.inject()
+    private val scope: Scope by lazy { createScope(this) }
+    private val presenter: CurrencyPresenter by scope.inject()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,6 +46,7 @@ class CurrencyFragment : BaseFragment(), CurrencyContract.View {
     override fun onDestroy() {
         compositeDisposable.clear()
         presenter.detach()
+        scope.close()
         super.onDestroy()
     }
 

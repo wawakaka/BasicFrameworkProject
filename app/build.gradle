@@ -1,21 +1,22 @@
-apply plugin: 'com.android.application'
-
-apply plugin: 'kotlin-android'
-
-apply plugin: 'kotlin-android-extensions'
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
 
 android {
-    compileSdkVersion projectCompileSdkVersion
+    namespace 'io.github.wawakaka.basicframeworkproject'
+    compileSdk 34
+
     defaultConfig {
         applicationId "io.github.wawakaka.basicframeworkproject"
-        minSdkVersion projectMinSdkVersion
-        targetSdkVersion projectTargetSdkVersion
-        buildToolsVersion projectBuildToolsVersion
+        minSdk 26
+        targetSdk 34
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
     buildTypes {
         release {
             debuggable false
@@ -30,29 +31,55 @@ android {
             multiDexEnabled = true
         }
     }
-    flavorDimensions "default"
+
+    flavorDimensions = ["default"]
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+
+    kotlinOptions {
+        jvmTarget = '21'
+    }
 }
 
 dependencies {
-
     implementation project(':domain')
-
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
-    implementation lib.kotlin
-    implementation lib.corektx
-    implementation lib.appcompat
-    implementation lib.constraintlayout
-    implementation lib.multidex
-    implementation lib.navigationfragmentktx
-    implementation lib.navigationuiktx
-    implementation lib.material
-    implementation lib.rxbinding
-    implementation lib.rxjava
-    implementation lib.anko
-    implementation lib.koinandroid
-    implementation lib.koinandroidxscope
-    implementation lib.rxpermissions
+    // Kotlin
+    implementation libs.kotlin.stdlib
 
-    testImplementation 'junit:junit:4.13'
+    // AndroidX Core
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.multidex
+
+    // AndroidX Navigation
+    implementation libs.androidx.navigation.fragment.ktx
+    implementation libs.androidx.navigation.ui.ktx
+
+    // Material Design
+    implementation libs.material
+
+    // RxJava
+    implementation libs.rxjava
+    implementation libs.rxbinding
+    implementation libs.rxpermissions
+
+    // Utilities
+    implementation libs.anko
+
+    // Dependency Injection
+    implementation libs.koin.android
+    implementation libs.koin.androidx.scope
+
+    // Testing
+    testImplementation libs.junit
 }

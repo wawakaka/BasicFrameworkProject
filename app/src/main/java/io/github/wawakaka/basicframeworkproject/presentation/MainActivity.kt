@@ -6,11 +6,13 @@ import io.github.wawakaka.basicframeworkproject.R
 import io.github.wawakaka.basicframeworkproject.base.BaseActivity
 import io.github.wawakaka.basicframeworkproject.base.FragmentActivityCallbacks
 import kotlinx.android.synthetic.main.activity_main.*
-import org.koin.androidx.scope.currentScope
+import org.koin.androidx.scope.createScope
+import org.koin.core.scope.Scope
 
 class MainActivity : BaseActivity(), FragmentActivityCallbacks, MainContract.View {
 
-    private val presenter: MainPresenter by currentScope.inject()
+    private val scope: Scope by lazy { createScope(this) }
+    private val presenter: MainPresenter by scope.inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,8 +22,9 @@ class MainActivity : BaseActivity(), FragmentActivityCallbacks, MainContract.Vie
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         presenter.detach()
+        scope.close()
+        super.onDestroy()
     }
 
     override fun setToolbar(title: String, showUpButton: Boolean) {

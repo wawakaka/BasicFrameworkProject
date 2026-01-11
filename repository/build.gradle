@@ -1,9 +1,12 @@
 apply from: "$rootDir/dep/build-lib.gradle"
 
+android {
+    namespace 'io.github.wawakaka.repository'
+}
+
 dependencies {
     implementation project(':restapi')
-
-    implementation lib.rxjava
-    implementation lib.retrofit
-    implementation lib.gson
+    implementation libs.rxjava
+    implementation libs.retrofit
+    implementation libs.gson
 }

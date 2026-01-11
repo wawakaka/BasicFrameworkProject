@@ -1,10 +1,10 @@
 package io.github.wawakaka.basicframeworkproject.presentation.content
 
-import org.koin.core.qualifier.named
+import org.koin.core.module.dsl.scopedOf
 import org.koin.dsl.module
 
 val currencyModule = module {
-    scope(named<CurrencyFragment>()) {
+    scope<CurrencyFragment> {
         scoped { CurrencyPresenter(get()) }
     }
 }
