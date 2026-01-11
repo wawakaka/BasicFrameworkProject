@@ -957,27 +957,13 @@ dependencies {
 - Import paths may have changed (e.g., `org.koin.android.ext.android`)
 
 #### 6. View Binding
-**Current State:** ViewBinding is enabled
-- **⚠️ Migration Needed:** Code still uses Kotlin Synthetics (deprecated since Kotlin 1.4.20)
-- **Action Required:** Update all Activities/Fragments to use ViewBinding
-- **Do not** mix Kotlin Synthetics and ViewBinding
-- **Next Step:** Full migration to Jetpack Compose (Milestone 2)
+**Current State:** ViewBinding is enabled (but not yet migrated)
+- **⚠️ Legacy Code:** Code still uses Kotlin Synthetics (deprecated since Kotlin 1.4.20)
+- **Skip ViewBinding Migration:** Will migrate directly to Jetpack Compose in Milestone 5
+- **Do not** add ViewBinding to new code - use Compose instead
+- **Next Step:** Full migration to Jetpack Compose (Milestone 5)
 
-**ViewBinding Pattern:**
-```kotlin
-private var _binding: FragmentFeatureBinding? = null
-private val binding get() = _binding!!
-
-override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-    _binding = FragmentFeatureBinding.inflate(inflater, container, false)
-    return binding.root
-}
-
-override fun onDestroyView() {
-    _binding = null  // Prevent memory leaks
-    super.onDestroyView()
-}
-```
+**Note:** ViewBinding is an intermediate step. Since we're planning to use Compose, we skip ViewBinding and go directly to Compose for all UI code.
 
 #### 7. Error Handling
 **Implement proper error callbacks:**
@@ -1125,6 +1111,100 @@ override fun onDestroyView() {
 - Documented current architecture state
 - Added comprehensive guidelines for AI assistants
 - Included common tasks and workflows
+
+---
+
+## Project Roadmap
+
+### Completed Milestones ✅
+
+| Milestone | Status | Completed | Focus |
+|-----------|--------|-----------|-------|
+| **M1** | ✅ | 2026-01-10 | Build modernization (Gradle 8.5, Kotlin 2.0.21, JDK 21) |
+| **M2** | ✅ | 2026-01-10 | Jetpack Compose migration with Material 3 |
+| **M3** | ✅ | 2026-01-10 | Kotlin Coroutines & Flow (replace RxJava) |
+| **M4** | ✅ | 2026-01-11 | Permission modernization (ActivityResultContracts) |
+
+### Upcoming Milestones 🚀
+
+| Milestone | Status | Target | Focus |
+|-----------|--------|--------|-------|
+| **M5** | 📋 Planned | TBD | Jetpack Compose UI migration (legacy views → Compose) |
+| **M6** | 📋 Planned | TBD | Architecture modernization (MVP → TOAD/MVVM/MVI) |
+| **M7** | 📋 Planned | TBD | Comprehensive testing (Unit, Instrumented, E2E) |
+| **M8** | 📋 Planned | TBD | Multi-module feature architecture |
+
+### Milestone 5: Jetpack Compose UI Migration
+
+**Scope:**
+- Migrate all Activities/Fragments from legacy views to Compose
+- Skip ViewBinding entirely (intermediate step not needed)
+- Remove Kotlin Synthetics completely
+- Adopt Compose Previews for UI development
+- Update navigation to Compose Navigation
+
+**Key Tasks:**
+1. Create Compose UI for MainActivity
+2. Create Compose UI for CurrencyFragment
+3. Migrate RecyclerView to LazyColumn
+4. Update CurrencyListAdapter/ViewHolder to Compose state management
+5. Remove all legacy layout XMLs
+6. Update Koin modules for Compose
+
+**Benefits:**
+- Single language for UI (Kotlin, no XML)
+- Better composability and reusability
+- Built-in state management
+- Easier testing with Compose testing framework
+- Modern Material 3 integration
+
+### Milestone 6: Architecture Evolution (MVP → TOAD/MVVM)
+
+**Rationale for Change:**
+- MVP has limitations with state management in modern Android
+- Coroutines + Flow provide better reactive patterns than RxJava
+- TOAD (The Opinionated Android Design) or MVVM better suited for:
+  - Screen state modeling
+  - Event handling
+  - Side effects management
+  - Testing complex UI logic
+
+**Architecture Options to Evaluate:**
+1. **TOAD Pattern:** Combines MVVM with state holders
+   - UiState data class for screen state
+   - UiEvent sealed class for user interactions
+   - ViewModel + StateFlow/LiveData
+   - Side effects handling with Channel/StateFlow
+
+2. **MVI Pattern:** Event → Intent → Model → View
+   - Unidirectional data flow
+   - Pure reducer functions
+   - Immutable state
+
+3. **Enhanced MVVM:** Modern ViewModel + Compose
+   - ViewModel as state holder
+   - Compose Recomposition on state change
+   - Simpler than TOAD for simpler screens
+
+**Proposed Approach:**
+- Evaluate with Currency feature (existing most complex feature)
+- Create alternate implementation with selected pattern
+- Document comparison and decision
+- Plan migration path for other features
+
+**Key Changes Expected:**
+- Remove Presenter layer (ViewModel replaces it)
+- Introduce UiState/UiEvent pattern
+- Refactor Koin modules for ViewModels
+- Update Compose UI to consume state
+- Simplify error handling with sealed types
+
+**Benefits:**
+- Better separation of concerns
+- Easier state management with Compose
+- Improved testability
+- Modern Android architecture standards
+- Better handling of configuration changes
 
 ---
 
