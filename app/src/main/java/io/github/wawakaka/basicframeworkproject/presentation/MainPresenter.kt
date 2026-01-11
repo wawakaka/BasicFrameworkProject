@@ -1,43 +1,19 @@
 package io.github.wawakaka.basicframeworkproject.presentation
 
-import android.Manifest
-import com.tbruyelle.rxpermissions2.Permission
-import com.tbruyelle.rxpermissions2.RxPermissions
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
+import io.github.wawakaka.basicframeworkproject.base.BasePresenter
 
-class MainPresenter(
-    private val compositeDisposable: CompositeDisposable = CompositeDisposable()
-) : MainContract.Presenter {
+class MainPresenter : BasePresenter<MainContract.View>(), MainContract.Presenter {
 
-    private lateinit var view: MainContract.View
-
-    override fun detach() {
-        compositeDisposable.clear()
+    override fun checkPermission() {
+        // Delegate permission request to View (Activity)
+        view?.requestCameraPermission()
     }
 
-    override fun attach(view: MainContract.View) {
-        this.view = view
-    }
-
-    override fun checkPermission(rxPermissions: RxPermissions) {
-        rxPermissions
-            .requestEachCombined(
-                Manifest.permission.CAMERA
-            )
-            .subscribeOn(AndroidSchedulers.mainThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                { permission -> checkPermissionStatus(permission) },
-                { view.onPermissionError(it) }
-            ).let(compositeDisposable::add)
-    }
-
-    private fun checkPermissionStatus(permission: Permission) {
-        when {
-            permission.granted -> view.onPermissionGranted()
-            permission.shouldShowRequestPermissionRationale -> view.onShouldShowPermissionRationale()
-            else -> view.onPermissionDenied()
+    override fun onPermissionResult(granted: Boolean) {
+        if (granted) {
+            view?.onPermissionGranted()
+        } else {
+            view?.onPermissionDenied()
         }
     }
 }

@@ -27,8 +27,8 @@ coroutines = "1.7.3"
 # Android Lifecycle
 androidxLifecycle = "2.7.0"
 
-# Reactive Programming (keeping RxPermissions for M4 migration)
-rxPermissions = "0.12"
+# AndroidX Activity (for ActivityResultContracts)
+androidxActivity = "1.8.1"
 
 # Networking
 retrofit = "2.9.0"
@@ -75,8 +75,8 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
 
-# RxJava (keeping RxPermissions for MainPresenter until M4)
-rxpermissions = { group = "com.github.tbruyelle", name = "rxpermissions", version.ref = "rxPermissions" }
+# AndroidX Activity (for ActivityResultContracts)
+androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidxActivity" }
 
 # Networking
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }

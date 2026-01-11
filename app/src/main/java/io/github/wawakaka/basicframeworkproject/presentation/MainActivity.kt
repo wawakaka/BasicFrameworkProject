@@ -1,7 +1,11 @@
 package io.github.wawakaka.basicframeworkproject.presentation
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import io.github.wawakaka.basicframeworkproject.R
 import io.github.wawakaka.basicframeworkproject.base.BaseActivity
 import io.github.wawakaka.basicframeworkproject.base.FragmentActivityCallbacks
@@ -13,6 +17,13 @@ class MainActivity : BaseActivity(), FragmentActivityCallbacks, MainContract.Vie
 
     private val scope: Scope by lazy { createScope(this) }
     private val presenter: MainPresenter by scope.inject()
+
+    // Register permission launcher (must be before onCreate returns)
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        presenter.onPermissionResult(isGranted)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,26 +46,47 @@ class MainActivity : BaseActivity(), FragmentActivityCallbacks, MainContract.Vie
         }
     }
 
-    override fun onPermissionGranted() {
-        Log.e(TAG, "permission granted")
+    override fun requestCameraPermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                // Permission already granted
+                presenter.onPermissionResult(granted = true)
+            }
+
+            shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> {
+                // Show rationale dialog explaining why we need the permission
+                showPermissionRationaleDialog()
+            }
+
+            else -> {
+                // Request permission
+                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+        }
     }
 
-    override fun onShouldShowPermissionRationale() {
-        Log.e(TAG, "permission shouldShowRequestPermissionRationale")
+    private fun showPermissionRationaleDialog() {
+        // TODO: Show Material 3 AlertDialog explaining camera permission need
+        // For now, proceed with permission request
+        requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+    }
+
+    override fun onPermissionGranted() {
+        Log.d(TAG, "Camera permission granted")
+        // TODO: Enable camera-dependent features
     }
 
     override fun onPermissionDenied() {
-        Log.e(TAG, "permission denied")
-    }
-
-    override fun onPermissionError(throwable: Throwable) {
-        Log.e(TAG, "requestInternetPermissionsObservable error", throwable)
+        Log.d(TAG, "Camera permission denied")
+        // TODO: Show message to user, offer to open app settings
     }
 
     private fun init() {
         setSupportActionBar(toolbar)
-        rxPermissions.setLogging(true)
-        presenter.checkPermission(rxPermissions)
+        presenter.checkPermission()
     }
 
     companion object {

@@ -1,6 +1,6 @@
 # CLAUDE.md - AI Assistant Guide for BasicFrameworkProject
 
-**Last Updated:** 2026-01-10 (Milestone 1 Complete)
+**Last Updated:** 2026-01-11 (Milestone 4 Complete)
 **Project Version:** 1.0
 **Target SDK:** Android 14 (API 34)
 
@@ -122,25 +122,29 @@ val featureModule = module {
 
 **Initialization:** Koin is started in `App.kt:onCreate()`
 
-### Reactive Programming Flow
+### Async Operations Flow (Kotlin Coroutines)
 
-All async operations use RxJava 2:
+All async operations use Kotlin Coroutines (replacing RxJava since M3):
 
 ```
 User Action → Presenter
     ↓
-UseCase (domain layer)
-    ↓ subscribeOn(Schedulers.io())
-Repository → API Call
-    ↓ observeOn(AndroidSchedulers.mainThread())
+presenterScope.launch { ... }
     ↓
-Presenter → View (UI update)
+UseCase (suspend function)
+    ↓
+Repository → API Call (suspend function)
+    ↓
+Presenter processes result
+    ↓
+Presenter → View (UI update on main thread)
 ```
 
 **Key Components:**
-- **CompositeDisposable:** Used in presenters for lifecycle management
-- **Schedulers:** IO for network, mainThread for UI
-- **Observable chains:** Transformations with `map`, `flatMap`
+- **BasePresenter:** Provides `presenterScope` with lifecycle management
+- **Suspend functions:** Used throughout domain and data layers
+- **presenterScope.launch:** Automatically cancelled when presenter detaches
+- **Lifecycle-aware:** Fragment `lifecycleScope` for UI lifecycle
 
 ---
 
@@ -284,7 +288,9 @@ restapi/
 - **Kotlin Coroutines Android:** `1.7.3` - Android-specific coroutine support
 - **AndroidX Lifecycle Runtime KTX:** `2.7.0` - Lifecycle-aware coroutine scopes
 - **AndroidX Lifecycle ViewModel KTX:** `2.7.0` - ViewModel coroutine support
-- **RxPermissions:** `0.12` - Permission handling (M4 migration planned)
+
+#### Android Permissions & Activities
+- **AndroidX Activity KTX:** `1.8.1` - ActivityResultContracts for permission handling
 
 #### Networking
 - **Retrofit:** `2.9.0` - REST API client
@@ -776,20 +782,74 @@ dependencies {
 - Automatic dependency conflict resolution
 - No manual string concatenation
 
-### Handling Permissions
+### Handling Permissions with ActivityResultContracts
 
-Use RxPermissions in Activity/Fragment:
+Modern Android permission handling using `ActivityResultContracts` (recommended since M4):
 
+**In Activity:**
 ```kotlin
-rxPermissions.request(Manifest.permission.CAMERA)
-    .subscribe { granted ->
-        if (granted) {
-            // Permission granted
-        } else {
-            // Permission denied
+class PermissionActivity : AppCompatActivity(), PermissionContract.View {
+
+    // Register permission launcher (must be before onCreate returns)
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        presenter.onPermissionResult(isGranted)
+    }
+
+    override fun requestCameraPermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                // Permission already granted
+                presenter.onPermissionResult(granted = true)
+            }
+
+            shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> {
+                // Show rationale dialog
+                showPermissionRationaleDialog()
+            }
+
+            else -> {
+                // Request permission
+                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
         }
     }
+
+    private fun showPermissionRationaleDialog() {
+        // Show Material 3 AlertDialog explaining why permission is needed
+        requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+    }
+}
 ```
+
+**In Presenter:**
+```kotlin
+class PermissionPresenter : BasePresenter<PermissionContract.View>(), PermissionContract.Presenter {
+    override fun checkPermission() {
+        // Delegate to View (Activity)
+        view?.requestCameraPermission()
+    }
+
+    override fun onPermissionResult(granted: Boolean) {
+        if (granted) {
+            view?.onPermissionGranted()
+        } else {
+            view?.onPermissionDenied()
+        }
+    }
+}
+```
+
+**Benefits:**
+- ✅ No RxJava dependency overhead
+- ✅ Type-safe contract API
+- ✅ Automatic lifecycle management
+- ✅ Modern Android best practice
+- ✅ Easier to test and maintain
 
 ### Implementing RecyclerView
 
@@ -841,13 +901,14 @@ dependencies {
 
 #### Unit Tests (Domain Layer)
 - Test UseCases in isolation
-- Mock repositories using RxJava `TestObserver`
-- Test data transformations
+- Mock repositories with suspend functions
+- Test data transformations and business logic
 
 #### Presenter Tests
 - Test presenter logic with mocked views
-- Verify view method calls
-- Test error handling
+- Use coroutine test libraries (kotlinx-coroutines-test)
+- Verify view method calls in proper order
+- Test error handling with try-catch blocks
 
 #### Integration Tests
 - Test repository with real API (or mock server)
@@ -872,11 +933,12 @@ dependencies {
 - Put business logic in Presenters
 - Keep UseCases focused on single operations
 
-#### 3. RxJava Resource Management
-**ALWAYS dispose subscriptions:**
-- Use `CompositeDisposable` in presenters
-- Clear in `onViewDetached()`
-- Use `.addTo(compositeDisposable)` or manual disposal
+#### 3. Coroutine Lifecycle Management (M3+)
+**Kotlin Coroutines handle resource cleanup automatically:**
+- Use `presenterScope` in presenters (extends BasePresenter)
+- No manual subscription disposal needed
+- Scope automatically cancels when presenter detaches
+- Use `lifecycleScope` in Fragments for UI lifecycle
 
 #### 4. Threading
 **Follow standard threading pattern:**
@@ -964,14 +1026,15 @@ override fun onDestroyView() {
 ### 📚 Common Pitfalls
 
 #### Memory Leaks
-- Not clearing CompositeDisposable
-- Holding View references after detach
+- Holding View references after detach (use weak references or nullify)
 - Static references to Activities/Fragments
+- Not properly closing Koin scopes in Activity/Fragment destroy
+- Presenter scope not properly initialized in BasePresenter
 
 #### Threading Issues
 - Accessing UI from background threads
-- Not using proper schedulers
 - Blocking operations on main thread
+- Not using suspend functions with proper context switching
 
 #### Dependency Issues
 - Circular dependencies in Koin
@@ -984,12 +1047,12 @@ override fun onDestroyView() {
 2. **Interface Segregation** - Use contracts for decoupling
 3. **Dependency Inversion** - Depend on abstractions (interfaces)
 4. **Single Responsibility** - Each UseCase = one operation
-5. **Reactive Patterns** - Use RxJava consistently
-6. **Lifecycle Awareness** - Respect Android lifecycle
-7. **Resource Cleanup** - Dispose, clear, nullify appropriately
-8. **Error Handling** - Handle all error cases
-9. **Testability** - Write testable, mockable code
-10. **Consistency** - Follow established patterns
+5. **Coroutine Patterns** - Use Kotlin Coroutines consistently (suspend functions)
+6. **Lifecycle Awareness** - Respect Android lifecycle (presenterScope, lifecycleScope)
+7. **Resource Cleanup** - Proper scope management, null references appropriately
+8. **Error Handling** - Handle all error cases with try-catch in coroutines
+9. **Testability** - Write testable, mockable code with suspend functions
+10. **Consistency** - Follow established patterns (MVP, BasePresenter, ActivityResultContracts)
 
 ---
 
@@ -998,7 +1061,8 @@ override fun onDestroyView() {
 ### External Dependencies Documentation
 
 - [Kotlin Docs](https://kotlinlang.org/docs/home.html)
-- [RxJava 2](https://github.com/ReactiveX/RxJava)
+- [Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-overview.html)
+- [ActivityResultContracts](https://developer.android.com/training/basics/intents/result)
 - [Koin](https://insert-koin.io/)
 - [Retrofit](https://square.github.io/retrofit/)
 - [Android Developers](https://developer.android.com/)
@@ -1013,6 +1077,25 @@ override fun onDestroyView() {
 ---
 
 ## Change Log
+
+### 2026-01-11 (Milestone 4 Complete - Permission Modernization)
+- **Milestone 4: Migrate RxPermissions to ActivityResultContracts**
+  - Removed RxPermissions 0.12 dependency (last remaining RxJava dependency)
+  - Added AndroidX Activity KTX 1.8.1 for ActivityResultContracts
+  - Migrated permission handling from RxJava 2 to ActivityResultContracts API
+  - Updated MainPresenter to extend BasePresenter (no more CompositeDisposable)
+  - Simplified MainPresenter to delegation pattern (requests permission from View)
+  - Updated MainActivity to implement ActivityResultLauncher
+  - Added permission pre-check (already granted) and rationale handling
+  - Improved MainContract interfaces (removed error callbacks)
+  - Updated MainModule with explicit type specification for Presenter
+  - Simplified BaseActivity (removed RxPermissions property)
+  - Updated CLAUDE.md with ActivityResultContracts examples
+  - Updated testing strategy for coroutine-based approach
+  - Updated best practices and common pitfalls documentation
+  - All async operations now use Kotlin Coroutines (no RxJava anywhere)
+  - Build is now completely RxJava-free
+- **Verified:** No RxJava transitive dependencies remain in project
 
 ### 2026-01-10 (Milestone 1 Complete - Enhanced)
 - **Milestone 1: Modernization Complete**

@@ -74,8 +74,8 @@ dependencies {
     implementation libs.androidx.lifecycle.viewmodel.ktx
     implementation libs.androidx.lifecycle.runtime.ktx
 
-    // RxJava (keeping RxPermissions for M4 migration)
-    implementation libs.rxpermissions
+    // AndroidX Activity (for ActivityResultContracts)
+    implementation libs.androidx.activity.ktx
 
     // Utilities
     implementation libs.anko
