@@ -98,6 +98,7 @@ dependencies {
 
     // Dependency Injection
     implementation libs.koin.android
+    implementation libs.koin.compose
 
     // Testing
     testImplementation libs.junit

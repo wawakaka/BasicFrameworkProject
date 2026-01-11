@@ -41,6 +41,7 @@ gson = "2.10.1"
 
 # Dependency Injection
 koin = "3.5.3"
+koinCompose = "3.5.3"
 
 # Development Tools
 chuck = "1.1.0"
@@ -102,6 +103,7 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 
 # Dependency Injection
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+koin-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koinCompose" }
 
 # Development Tools
 chuck = { group = "com.readystatesoftware.chuck", name = "library", version.ref = "chuck" }
