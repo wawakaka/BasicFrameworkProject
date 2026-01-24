@@ -1,30 +1,25 @@
 package io.github.wawakaka.basicframeworkproject.presentation.content
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import io.github.wawakaka.basicframeworkproject.presentation.ui.screens.CurrencyScreen
 import io.github.wawakaka.basicframeworkproject.presentation.ui.theme.BasicFrameworkTheme
-import org.koin.androidx.scope.createScope
-import org.koin.core.scope.Scope
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class CurrencyFragment : Fragment(), CurrencyContract.View {
+/**
+ * Currency Fragment with TOAD pattern (Milestone 6)
+ * Uses CurrencyViewModel for state management instead of Presenter
+ */
+class CurrencyFragment : Fragment() {
 
-    private val scope: Scope by lazy { createScope(this) }
-    private val presenter: CurrencyPresenter by scope.inject()
-
-    // State for UI updates from presenter
-    private var isLoading by mutableStateOf(false)
-    private var currencies by mutableStateOf<List<Pair<String, Double>>>(emptyList())
-    private var error by mutableStateOf<Throwable?>(null)
+    // ========== TOAD Pattern (Milestone 6) ==========
+    // Inject ViewModel from Koin
+    private val currencyViewModel: CurrencyViewModel by viewModel()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,21 +30,20 @@ class CurrencyFragment : Fragment(), CurrencyContract.View {
 
         setContent {
             BasicFrameworkTheme {
-                CurrencyScreen(
-                    isLoading = isLoading,
-                    currencies = currencies,
-                    error = error,
-                    onLoadData = {
-                        presenter.onButtonClickedEvent()
-                    },
-                    onRetry = {
-                        error = null
-                        presenter.onButtonClickedEvent()
-                    }
-                )
+                // Use new TOAD-based CurrencyScreen
+                CurrencyScreen(viewModel = currencyViewModel)
             }
         }
     }
+
+    // ========== MVP Pattern (Deprecated - commented out) ==========
+    /*
+    // Old implementation with Presenter
+    private val scope: Scope by lazy { createScope(this) }
+    private val presenter: CurrencyPresenter by scope.inject()
+    private var isLoading by mutableStateOf(false)
+    private var currencies by mutableStateOf<List<Pair<String, Double>>>(emptyList())
+    private var error by mutableStateOf<Throwable?>(null)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -82,6 +76,7 @@ class CurrencyFragment : Fragment(), CurrencyContract.View {
         error = throwable
         Log.e(TAG, "Failed to load currency rates", throwable)
     }
+    */
 
     companion object {
         private val TAG = CurrencyFragment::class.java.simpleName
