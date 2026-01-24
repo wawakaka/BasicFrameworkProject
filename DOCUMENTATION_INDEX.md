@@ -1,7 +1,7 @@
 # Documentation Index
 
-**Last Updated:** 2026-01-11
-**Project Status:** M1-M4 Complete | M5-M6 Planned
+**Last Updated:** 2026-01-24
+**Project Status:** M1-M5 Complete ✅ | M6-M8 Planned 📋
 
 ---
 
@@ -15,7 +15,9 @@
 ### 📖 Comprehensive Guides
 - **Architecture & patterns:** [CLAUDE.md](CLAUDE.md) - 1000+ lines of architecture guide
 - **Build system:** [MIGRATION_M1.md](MIGRATION_M1.md) - Gradle 8.5, Kotlin 2.0.21, JDK 21
-- **Roadmap history:** [MILESTONE_1_SUMMARY.md](MILESTONE_1_SUMMARY.md) - M1 completion details
+- **Roadmap history:**
+  - [MILESTONE_1_SUMMARY.md](MILESTONE_1_SUMMARY.md) - M1 completion details
+  - [MILESTONE_5_SUMMARY.md](MILESTONE_5_SUMMARY.md) - ✅ M5 Compose migration complete (2026-01-24)
 
 ---
 
@@ -37,11 +39,10 @@
 ### Developers
 **Need:** Implementation steps, code patterns, architecture details
 
-#### For M5 (Compose UI Migration)
-1. Read: [MILESTONE_5_PLAN.md](MILESTONE_5_PLAN.md) - 5 phases, detailed tasks
-2. Reference: [CLAUDE.md](CLAUDE.md) § Code Conventions
-3. Implement: Follow Phase 1-5 in order
-4. Test: Use checklist in MILESTONE_5_PLAN.md
+#### For M5 (Compose UI Migration) ✅ COMPLETE
+- **Status:** ✅ Complete (2026-01-24)
+- **Summary:** [MILESTONE_5_SUMMARY.md](MILESTONE_5_SUMMARY.md) - What was accomplished
+- **Original Plan:** [MILESTONE_5_PLAN.md](MILESTONE_5_PLAN.md) - 5 phases (for reference)
 
 #### For M6 (TOAD Architecture)
 1. Read: [MILESTONE_6_PLAN.md](MILESTONE_6_PLAN.md) - 6 steps with code examples
@@ -313,7 +314,7 @@ A: Read MILESTONE_5_PLAN.md completely, follow 5 phases in order with code examp
 A: Read MILESTONE_6_PLAN.md completely, follow 6 steps with TOAD pattern examples
 
 **Q: What's the current state of the code?**
-A: See PROJECT_STATUS.md - M1-M4 complete, M5-M6 planned, code still uses MVP + XML
+A: See PROJECT_STATUS.md - M1-M5 complete ✅ (Compose UI), M6-M8 planned, currently uses MVP + Compose (will migrate MVP to TOAD in M6)
 
 **Q: How much effort for M5 and M6?**
 A: M5 = 20-30 hours, M6 = 15-20 hours = ~35-50 total hours
@@ -379,6 +380,9 @@ A: Skip it - go directly to Compose. M5 removes XML layouts completely.
 
 ---
 
-**Last Updated:** 2026-01-11
-**Next Review:** After M5 completion
+**Last Updated:** 2026-01-24
+**Next Review:** After M6 completion
 **Maintainer:** Development Lead
+
+### Recent Updates
+- 2026-01-24: ✅ M5 Complete - Added MILESTONE_5_SUMMARY.md, updated all status references

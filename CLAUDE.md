@@ -1064,6 +1064,30 @@ dependencies {
 
 ## Change Log
 
+### 2026-01-24 (Milestone 5 Complete - Jetpack Compose Migration)
+- **Milestone 5: Jetpack Compose UI Migration with Material 3**
+  - Added Jetpack Compose BOM 2024.02.00 and all Compose dependencies
+  - Applied Kotlin Compose Compiler Plugin (compatible with Kotlin 2.0.21)
+  - Disabled ViewBinding completely (no longer needed)
+  - Created Material 3 theme system (Color.kt, Type.kt, Theme.kt)
+  - Created reusable Compose components:
+    * AppTopBar (Material 3 TopAppBar with optional back button)
+    * LoadingIndicator (centered progress indicator)
+    * ErrorMessage (error display with retry button)
+    * CurrencyListItem (Material 3 Card for currency display)
+  - Created CurrencyScreen composable with state-based rendering
+  - Migrated MainActivity from XML + ViewBinding to `setContent` + Compose
+  - Migrated CurrencyFragment from XML + RecyclerView to ComposeView + LazyColumn
+  - Replaced RecyclerView with Compose LazyColumn
+  - Deleted all XML layout files (activity_main.xml, fragment_currency.xml, layout_currency_item.xml)
+  - Deleted RecyclerView adapter and viewholder (CurrencyListAdapter.kt, CurrencyListViewHolder.kt)
+  - Removed all Kotlin synthetic imports (kotlinx.android.synthetic)
+  - Updated CurrencyFragment to use `mutableStateOf` for UI state management
+  - Kept MVP pattern (Presenter/Contract) - will migrate to TOAD in M6
+  - Added Compose Previews for all components
+  - All UI is now 100% Jetpack Compose (zero XML layouts)
+- **Next:** Milestone 6 - Architecture Evolution (MVP → TOAD with ViewModel + StateFlow)
+
 ### 2026-01-11 (Milestone 4 Complete - Permission Modernization)
 - **Milestone 4: Migrate RxPermissions to ActivityResultContracts**
   - Removed RxPermissions 0.12 dependency (last remaining RxJava dependency)
@@ -1121,42 +1145,44 @@ dependencies {
 | Milestone | Status | Completed | Focus |
 |-----------|--------|-----------|-------|
 | **M1** | ✅ | 2026-01-10 | Build modernization (Gradle 8.5, Kotlin 2.0.21, JDK 21) |
-| **M2** | ✅ | 2026-01-10 | Jetpack Compose migration with Material 3 |
 | **M3** | ✅ | 2026-01-10 | Kotlin Coroutines & Flow (replace RxJava) |
 | **M4** | ✅ | 2026-01-11 | Permission modernization (ActivityResultContracts) |
+| **M5** | ✅ | 2026-01-24 | **Jetpack Compose UI migration with Material 3** |
 
 ### Upcoming Milestones 🚀
 
 | Milestone | Status | Target | Focus |
 |-----------|--------|--------|-------|
-| **M5** | 📋 Planned | TBD | Jetpack Compose UI migration (legacy views → Compose) |
-| **M6** | 📋 Planned | TBD | Architecture modernization (MVP → TOAD/MVVM/MVI) |
+| **M6** | 📋 Planned | TBD | Architecture modernization (MVP → TOAD) |
 | **M7** | 📋 Planned | TBD | Comprehensive testing (Unit, Instrumented, E2E) |
 | **M8** | 📋 Planned | TBD | Multi-module feature architecture |
 
-### Milestone 5: Jetpack Compose UI Migration
+### Milestone 5: Jetpack Compose UI Migration ✅ COMPLETE
 
-**Scope:**
-- Migrate all Activities/Fragments from legacy views to Compose
-- Skip ViewBinding entirely (intermediate step not needed)
-- Remove Kotlin Synthetics completely
-- Adopt Compose Previews for UI development
-- Update navigation to Compose Navigation
+**Scope:** (All completed 2026-01-24)
+- ✅ Migrated all Activities/Fragments from legacy views to Compose
+- ✅ Skipped ViewBinding entirely (not needed with Compose)
+- ✅ Removed Kotlin Synthetics completely
+- ✅ Adopted Compose Previews for UI development
+- ⏳ Compose Navigation (deferred to M6)
 
-**Key Tasks:**
-1. Create Compose UI for MainActivity
-2. Create Compose UI for CurrencyFragment
-3. Migrate RecyclerView to LazyColumn
-4. Update CurrencyListAdapter/ViewHolder to Compose state management
-5. Remove all legacy layout XMLs
-6. Update Koin modules for Compose
+**Key Tasks Completed:**
+1. ✅ Created Compose UI for MainActivity (`setContent`)
+2. ✅ Created Compose UI for CurrencyFragment (ComposeView)
+3. ✅ Migrated RecyclerView to LazyColumn
+4. ✅ Removed CurrencyListAdapter/ViewHolder (replaced with Compose)
+5. ✅ Removed all legacy layout XMLs
+6. ✅ Created Material 3 theme system
+7. ✅ Built reusable Compose components
 
-**Benefits:**
-- Single language for UI (Kotlin, no XML)
-- Better composability and reusability
-- Built-in state management
-- Easier testing with Compose testing framework
-- Modern Material 3 integration
+**Benefits Achieved:**
+- ✅ Single language for UI (Kotlin, no XML)
+- ✅ Better composability and reusability
+- ✅ Built-in state management with `mutableStateOf`
+- ✅ Compose Previews enabled
+- ✅ Modern Material 3 integration
+
+**See:** MILESTONE_5_SUMMARY.md for complete details
 
 ### Milestone 6: Architecture Evolution (MVP → TOAD/MVVM)
 

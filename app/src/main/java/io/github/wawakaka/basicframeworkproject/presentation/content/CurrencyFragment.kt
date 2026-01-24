@@ -1,42 +1,59 @@
 package io.github.wawakaka.basicframeworkproject.presentation.content
 
-import android.graphics.PorterDuff
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import io.github.wawakaka.basicframeworkproject.R
-import io.github.wawakaka.basicframeworkproject.base.BaseFragment
-import io.github.wawakaka.basicframeworkproject.presentation.content.adapter.CurrencyListAdapter
-import io.github.wawakaka.basicframeworkproject.utilities.makeInvisible
-import io.github.wawakaka.basicframeworkproject.utilities.makeVisible
-import kotlinx.android.synthetic.main.fragment_currency.*
-import kotlinx.coroutines.launch
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.fragment.app.Fragment
+import io.github.wawakaka.basicframeworkproject.presentation.ui.screens.CurrencyScreen
+import io.github.wawakaka.basicframeworkproject.presentation.ui.theme.BasicFrameworkTheme
 import org.koin.androidx.scope.createScope
 import org.koin.core.scope.Scope
 
-class CurrencyFragment : BaseFragment(), CurrencyContract.View {
+class CurrencyFragment : Fragment(), CurrencyContract.View {
 
     private val scope: Scope by lazy { createScope(this) }
     private val presenter: CurrencyPresenter by scope.inject()
+
+    // State for UI updates from presenter
+    private var isLoading by mutableStateOf(false)
+    private var currencies by mutableStateOf<List<Pair<String, Double>>>(emptyList())
+    private var error by mutableStateOf<Throwable?>(null)
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_currency, container, false)
+    ): View = ComposeView(requireContext()).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
+        setContent {
+            BasicFrameworkTheme {
+                CurrencyScreen(
+                    isLoading = isLoading,
+                    currencies = currencies,
+                    error = error,
+                    onLoadData = {
+                        presenter.onButtonClickedEvent()
+                    },
+                    onRetry = {
+                        error = null
+                        presenter.onButtonClickedEvent()
+                    }
+                )
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         presenter.attach(this)
-        init()
     }
 
     override fun onDestroy() {
@@ -45,53 +62,25 @@ class CurrencyFragment : BaseFragment(), CurrencyContract.View {
         super.onDestroy()
     }
 
+    // CurrencyContract.View implementation
     override fun showLoading() {
-        progress_loading.makeVisible()
+        isLoading = true
+        error = null
     }
 
     override fun hideLoading() {
-        progress_loading.makeInvisible()
+        isLoading = false
     }
 
     override fun onGetDataSuccess(data: List<Pair<String, Double>>) {
-        recycler_currency.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = CurrencyListAdapter(data).apply {
-                this.clickListener = {
-                    Toast.makeText(context, "", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-        Log.d(TAG, "onGetCurrentWeather next")
+        currencies = data
+        error = null
+        Log.d(TAG, "Successfully loaded ${data.size} currency rates")
     }
 
     override fun onGetDataFailed(throwable: Throwable) {
-        Toast.makeText(activity, throwable.toString(), Toast.LENGTH_LONG).show()
-        Log.e(TAG, "error onGetCurrentWeather", throwable)
-    }
-
-    private fun init() {
-        initGoButton()
-        initProgressbar()
-    }
-
-    private fun initGoButton() {
-        button_go.setOnClickListener {
-            lifecycleScope.launch {
-                presenter.onButtonClickedEvent()
-            }
-        }
-    }
-
-    private fun initProgressbar() {
-        context?.let {
-            progress_loading.indeterminateDrawable.setColorFilter(
-                ContextCompat.getColor(
-                    it,
-                    R.color.colorPrimary
-                ), PorterDuff.Mode.SRC_ATOP
-            )
-        }
+        error = throwable
+        Log.e(TAG, "Failed to load currency rates", throwable)
     }
 
     companion object {
