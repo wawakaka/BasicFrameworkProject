@@ -24,7 +24,6 @@ import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.commit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.wawakaka.basicframeworkproject.R
-import io.github.wawakaka.basicframeworkproject.base.FragmentActivityCallbacks
 import io.github.wawakaka.basicframeworkproject.presentation.content.CurrencyFragment
 import io.github.wawakaka.basicframeworkproject.presentation.ui.components.AppTopBar
 import io.github.wawakaka.basicframeworkproject.presentation.ui.theme.BasicFrameworkTheme
@@ -34,7 +33,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
  * Main Activity with TOAD pattern (Milestone 6)
  * Uses MainViewModel for permission state management
  */
-class MainActivity : AppCompatActivity(), FragmentActivityCallbacks {
+class MainActivity : AppCompatActivity() {
 
     // ========== TOAD Pattern (Milestone 6) ==========
     // Inject MainViewModel from Koin
@@ -92,11 +91,6 @@ class MainActivity : AppCompatActivity(), FragmentActivityCallbacks {
         // TODO M7: Show Material 3 Compose AlertDialog explaining camera permission need
         // For now, proceed with permission request
         requestPermissionLauncher.launch(Manifest.permission.CAMERA)
-    }
-
-    override fun setToolbar(title: String, showUpButton: Boolean) {
-        // Toolbar is now part of Compose hierarchy
-        // This callback is no longer needed with Compose
     }
 
     companion object {

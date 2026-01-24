@@ -3,11 +3,65 @@ BasicFrameworkProject
 
 ![Android CI](https://github.com/wawakaka/BasicFrameworkProject/workflows/Android%20CI/badge.svg)
 
+Modern Android application demonstrating **Clean Architecture** with **TOAD pattern** (The Opinionated Android Design), built with Jetpack Compose and Material 3.
 
-Base framework for creating Android application with X architecture.
-Using Kotlin, Rx, Retrofit and Kotlin Koin.
+## Features
 
-To try this project you need to get api key from https://openweathermap.org/
+- **Architecture:** Clean Architecture with TOAD pattern (State/Event/Effect)
+- **UI:** 100% Jetpack Compose with Material 3
+- **Language:** Kotlin 2.0.21
+- **Async:** Kotlin Coroutines & StateFlow
+- **DI:** Koin 3.5.3
+- **Networking:** Retrofit + OkHttp
+- **Demo Feature:** Currency exchange rates display
 
-## Notes 
-`name are subject to change`
+## Tech Stack
+
+- **Build System:** Gradle 8.5, AGP 8.2.2, JDK 21
+- **Min SDK:** 26 (Android 8.0)
+- **Target SDK:** 34 (Android 14)
+- **Architecture Pattern:** TOAD (ViewModel + StateFlow + Channel)
+- **UI Framework:** Jetpack Compose (BOM 2024.02.00)
+- **Testing:** JUnit, Mockito Kotlin, Compose UI Test (58 tests)
+
+## API
+
+This demo app uses the [Rates API](https://ratesapi.io/documentation/) to display live currency exchange rates. No API key required.
+
+## Documentation
+
+See [CLAUDE.md](CLAUDE.md) for comprehensive project documentation including:
+- Architecture details
+- Code conventions
+- Development workflows
+- Testing strategy
+- Migration guides
+
+## Build & Run
+
+```bash
+# Clean build
+./gradlew clean build
+
+# Run unit tests
+./gradlew test
+
+# Run instrumented tests
+./gradlew connectedAndroidTest
+
+# Install debug APK
+./gradlew installDebug
+```
+
+## Project Milestones
+
+- ✅ **M1:** Gradle 8.5 + Kotlin 2.0.21 + JDK 21
+- ✅ **M3:** Kotlin Coroutines migration (RxJava removed)
+- ✅ **M4:** Modern permission handling (ActivityResultContracts)
+- ✅ **M5:** Jetpack Compose UI migration
+- ✅ **M6:** TOAD architecture migration (MVP → ViewModel)
+- 📋 **M7:** Code cleanup (remove deprecated MVP code)
+
+## License
+
+This is a demonstration project for educational purposes.
