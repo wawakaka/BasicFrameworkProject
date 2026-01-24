@@ -1,62 +1,67 @@
 [versions]
 # SDK Versions
-compileSdk = "34"
+compileSdk = "36"
 minSdk = "26"
-targetSdk = "34"
+targetSdk = "36"
 
 # Build Tools
-agp = "8.2.2"
-kotlin = "2.0.21"
+agp = "9.0.0"
+kotlin = "2.3.0"
 
 # AndroidX Core
-androidxCore = "1.12.0"
-androidxAppCompat = "1.6.1"
-androidxConstraintLayout = "2.1.4"
+androidxCore = "1.17.0"
+androidxAppCompat = "1.7.1"
+androidxConstraintLayout = "2.2.1"
 androidxMultidex = "2.0.1"
 androidxLegacySupport = "1.0.0"
 
 # AndroidX Navigation
-androidxNavigation = "2.7.6"
+androidxNavigation = "2.9.6"
 
 # Material Design
-material = "1.11.0"
+material = "1.13.0"
 
 # Kotlin Coroutines
-coroutines = "1.7.3"
+coroutines = "1.10.2"
 
 # Android Lifecycle
-androidxLifecycle = "2.7.0"
+androidxLifecycle = "2.10.0"
 
 # AndroidX Activity (for ActivityResultContracts)
-androidxActivity = "1.8.1"
+androidxActivity = "1.12.2"
 
 # Jetpack Compose
-composeBom = "2024.02.00"
-composeActivity = "1.8.1"
-composeNavigation = "2.7.6"
+composeBom = "2026.01.00"
+composeActivity = "1.12.2"
+composeNavigation = "2.9.6"
 
 # Networking
-retrofit = "2.9.0"
-okhttp = "4.12.0"
-gson = "2.10.1"
+retrofit = "3.0.0"
+okhttp = "5.3.2"
+gson = "2.13.2"
 
 # Dependency Injection
-koin = "3.5.3"
+koin = "4.1.1"
 
 # Utilities
 anko = "0.10.8"
 
 # Development Tools
-chuck = "1.1.0"
+chucker = "4.3.0"
 
 # Testing
 junit = "4.13.2"
-mockitoKotlin = "5.1.0"
+mockitoKotlin = "6.2.2"
 androidxArchCore = "2.2.0"
-androidxTestRunner = "1.5.2"
-androidxTestEspresso = "3.5.1"
+androidxTestRunner = "1.7.0"
+androidxTestEspresso = "3.7.0"
 
 [libraries]
+# Build Tools
+android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
+kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-compose-gradle-plugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
+
 # Kotlin
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
 
@@ -98,6 +103,7 @@ compose-runtime = { group = "androidx.compose.runtime", name = "runtime" }
 
 # Compose Material 3
 compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 
 # Compose UI Testing
 compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
@@ -126,7 +132,7 @@ koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compos
 
 # Utilities
 anko = { group = "org.jetbrains.anko", name = "anko", version.ref = "anko" }
-chuck = { group = "com.readystatesoftware.chuck", name = "library", version.ref = "chuck" }
+chucker = { group = "com.github.chuckerteam.chucker", name = "library", version.ref = "chucker" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }

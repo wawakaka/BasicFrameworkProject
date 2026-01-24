@@ -7,12 +7,17 @@ apply from: "$rootDir/dep/build-lib.gradle"
 
 android {
     namespace 'io.github.wawakaka.restapi'
+    buildFeatures {
+        buildConfig true
+    }
 }
 
 dependencies {
     implementation libs.retrofit
     implementation libs.retrofit.converter.gson
+    implementation libs.gson
     implementation libs.okhttp
     implementation libs.okhttp.logging.interceptor
-    implementation libs.chuck
+    debugImplementation libs.chucker
+    releaseImplementation libs.chucker // Or use chucker-no-op for release
 }

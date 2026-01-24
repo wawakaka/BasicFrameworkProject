@@ -1,11 +1,10 @@
 package io.github.wawakaka.restapi
 
 import android.app.Application
+import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.internal.bind.DateTypeAdapter
-import com.readystatesoftware.chuck.ChuckInterceptor
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -21,7 +20,7 @@ object RestApi {
             okHttpClient = provideOkHttpClient(
                 headerInterceptor = HeaderInterceptor(),
                 loggingInterceptor = provideHttpLoggingInterceptor(BuildConfig.DEBUG),
-                chuckInterceptor = provideChuckInterceptor(application)
+                chuckerInterceptor = provideChuckerInterceptor(application)
             ),
             baseUrl = baseUrl,
             gson = provideGson()
@@ -43,20 +42,20 @@ object RestApi {
     private fun provideOkHttpClient(
         headerInterceptor: Interceptor,
         loggingInterceptor: Interceptor,
-        chuckInterceptor: ChuckInterceptor
+        chuckerInterceptor: Interceptor
     ): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(headerInterceptor)
             .addInterceptor(loggingInterceptor)
-            .addInterceptor(chuckInterceptor)
+            .addInterceptor(chuckerInterceptor)
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
             .build()
     }
 
-    private fun provideChuckInterceptor(application: Application): ChuckInterceptor {
-        return ChuckInterceptor(application)
+    private fun provideChuckerInterceptor(application: Application): Interceptor {
+        return ChuckerInterceptor.Builder(application).build()
     }
 
     private fun provideHttpLoggingInterceptor(logEnabled: Boolean): Interceptor {
@@ -69,7 +68,6 @@ object RestApi {
     private fun provideGson(): Gson {
         return GsonBuilder()
             .setFieldNamingPolicy(FieldNamingPolicy.IDENTITY)
-            .registerTypeAdapter(Date::class.java, DateTypeAdapter())
             .create()
     }
 

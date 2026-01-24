@@ -1,17 +1,17 @@
 plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-    id 'org.jetbrains.kotlin.plugin.compose'
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
     namespace 'io.github.wawakaka.basicframeworkproject'
-    compileSdk 34
+    compileSdk libs.versions.compileSdk.get().toInteger()
 
     defaultConfig {
         applicationId "io.github.wawakaka.basicframeworkproject"
-        minSdk 26
-        targetSdk 34
+        minSdk libs.versions.minSdk.get().toInteger()
+        targetSdk libs.versions.targetSdk.get().toInteger()
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
@@ -22,7 +22,7 @@ android {
         release {
             debuggable false
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
             debuggable true
@@ -37,11 +37,8 @@ android {
 
     buildFeatures {
         compose true
-        viewBinding false  // Disable ViewBinding, using Compose now
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.7"  // Compatible with Kotlin 2.0.21
+        viewBinding false
+        buildConfig true
     }
 
     compileOptions {
@@ -64,12 +61,7 @@ dependencies {
     // AndroidX Core
     implementation libs.androidx.core.ktx
     implementation libs.androidx.appcompat
-    implementation libs.androidx.constraintlayout
     implementation libs.androidx.multidex
-
-    // AndroidX Navigation
-    implementation libs.androidx.navigation.fragment.ktx
-    implementation libs.androidx.navigation.ui.ktx
 
     // Material Design
     implementation libs.material
@@ -95,6 +87,7 @@ dependencies {
 
     // Compose Material 3
     implementation libs.compose.material3
+    implementation libs.compose.material.icons.extended
 
     // Compose Activity Integration
     implementation libs.androidx.activity.compose
@@ -108,9 +101,6 @@ dependencies {
 
     // Debug tooling
     debugImplementation libs.compose.ui.tooling
-
-    // Utilities
-    implementation libs.anko
 
     // Dependency Injection
     implementation libs.koin.android

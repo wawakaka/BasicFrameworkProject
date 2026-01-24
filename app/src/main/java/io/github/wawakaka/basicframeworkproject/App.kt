@@ -2,9 +2,8 @@ package io.github.wawakaka.basicframeworkproject
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.os.Build
+import android.content.Context
 import androidx.multidex.MultiDexApplication
-import org.jetbrains.anko.notificationManager
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -30,14 +29,13 @@ class App : MultiDexApplication() {
     }
 
     private fun initNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            notificationManager.createNotificationChannel(
-                NotificationChannel(
-                    "default",
-                    "default",
-                    NotificationManager.IMPORTANCE_DEFAULT
-                )
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(
+            NotificationChannel(
+                "default",
+                "default",
+                NotificationManager.IMPORTANCE_DEFAULT
             )
-        }
+        )
     }
 }
