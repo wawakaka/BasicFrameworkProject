@@ -17,7 +17,8 @@
       "Bash(rpm:*)",
       "Bash(flatpak list:*)",
       "Bash(./gradlew:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(grep:*)"
     ]
   },
   "outputStyle": "default"
