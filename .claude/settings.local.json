@@ -15,7 +15,9 @@
       "Bash(adb:*)",
       "Bash([ -d \"$HOME/Android/Sdk\" ])",
       "Bash(rpm:*)",
-      "Bash(flatpak list:*)"
+      "Bash(flatpak list:*)",
+      "Bash(./gradlew:*)",
+      "Bash(curl:*)"
     ]
   },
   "outputStyle": "default"

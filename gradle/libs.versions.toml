@@ -116,7 +116,7 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 
 # Dependency Injection
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
-koin-androidx-scope = { group = "io.insert-koin", name = "koin-androidx-scope", version.ref = "koin" }
+koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
 
 # Utilities
 anko = { group = "org.jetbrains.anko", name = "anko", version.ref = "anko" }
