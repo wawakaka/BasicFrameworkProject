@@ -1,6 +1,6 @@
 # CLAUDE.md - AI Assistant Guide for BasicFrameworkProject
 
-**Last Updated:** 2026-01-11 (Milestone 4 Complete)
+**Last Updated:** 2026-01-24 (Milestone 6 Complete)
 **Project Version:** 1.0
 **Target SDK:** Android 14 (API 34)
 
@@ -23,7 +23,7 @@
 
 ## Project Overview
 
-**BasicFrameworkProject** is a demonstration Android application showcasing Clean Architecture principles with MVP pattern. The app displays currency exchange rates using the rates API.
+**BasicFrameworkProject** is a demonstration Android application showcasing Clean Architecture principles with TOAD (The Opinionated Android Design) pattern. The app displays currency exchange rates using the rates API.
 
 ### Key Characteristics
 - **Package Name:** `io.github.wawakaka.basicframeworkproject`
@@ -35,12 +35,16 @@
 - **Compile SDK:** 34
 - **JDK:** 21 (recommended, 17+ required)
 - **Primary Feature:** Currency exchange rate display
+- **UI Framework:** Jetpack Compose with Material 3
+- **Architecture:** TOAD with ViewModel + StateFlow
 
 ### Project Purpose
 This is a framework/template project demonstrating professional Android development practices with:
 - Clean Architecture separation
-- Reactive programming patterns
-- Dependency injection
+- TOAD architecture pattern (State/Event/Effect)
+- Jetpack Compose UI
+- Reactive programming with Kotlin Coroutines & StateFlow
+- Dependency injection with Koin
 - Modern Android components
 
 ---
@@ -54,8 +58,9 @@ The project follows a strict layered architecture:
 ```
 ┌─────────────────────────────────────────────────┐
 │  Presentation Layer (app module)                │
-│  - Activities, Fragments, Presenters            │
-│  - UI Components, Adapters                      │
+│  - Jetpack Compose UI (Activities, Fragments)   │
+│  - ViewModels (TOAD Pattern)                    │
+│  - State/Event/Effect Models                    │
 │  - Koin DI Configuration                        │
 └─────────────────┬───────────────────────────────┘
                   │
@@ -80,71 +85,194 @@ The project follows a strict layered architecture:
 └─────────────────────────────────────────────────┘
 ```
 
-### MVP Pattern Implementation
+### TOAD Pattern Implementation (Current - Milestone 6)
 
-Each feature implements the MVP pattern with clear contracts:
+Each feature implements the TOAD pattern with State/Event/Effect modeling:
 
-**Contract Definition (`*Contract.kt`):**
+**State Model (`*State.kt`):**
 ```kotlin
-interface FeatureContract {
-    interface View : BaseContract.View {
-        fun onGetDataSuccess(data: List<T>)
-        fun onGetDataFailed(throwable: Throwable)
+sealed class FeatureUiState {
+    object Idle : FeatureUiState()
+    object Loading : FeatureUiState()
+    data class Success(val data: List<T>) : FeatureUiState()
+    data class Error(val message: String) : FeatureUiState()
+}
+
+sealed class FeatureUiEvent {
+    object OnLoadData : FeatureUiEvent()
+    object OnRetry : FeatureUiEvent()
+    object OnRefresh : FeatureUiEvent()
+}
+
+sealed class FeatureUiEffect {
+    data class ShowToast(val message: String) : FeatureUiEffect()
+    data class NavigateBack : FeatureUiEffect()
+}
+```
+
+**ViewModel Implementation:**
+```kotlin
+class FeatureViewModel(
+    private val useCase: FeatureUseCase
+) : ViewModel() {
+    private val _state = MutableStateFlow<FeatureUiState>(FeatureUiState.Idle)
+    val state: StateFlow<FeatureUiState> = _state.asStateFlow()
+
+    private val _effect = Channel<FeatureUiEffect>()
+    val effect: Flow<FeatureUiEffect> = _effect.receiveAsFlow()
+
+    fun handleEvent(event: FeatureUiEvent) {
+        when (event) {
+            is FeatureUiEvent.OnLoadData -> loadData()
+            is FeatureUiEvent.OnRetry -> loadData()
+            is FeatureUiEvent.OnRefresh -> loadData()
+        }
     }
 
-    interface Presenter : BaseContract.Presenter<View> {
-        fun onButtonClickedEvent()
+    private fun loadData() {
+        viewModelScope.launch {
+            _state.value = FeatureUiState.Loading
+            try {
+                val data = useCase.execute()
+                _state.value = FeatureUiState.Success(data)
+            } catch (e: Exception) {
+                _state.value = FeatureUiState.Error(e.message ?: "Unknown error")
+                _effect.send(FeatureUiEffect.ShowToast("Failed to load data"))
+            }
+        }
+    }
+}
+```
+
+**Compose UI Integration:**
+```kotlin
+@Composable
+fun FeatureScreen(viewModel: FeatureViewModel) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is FeatureUiEffect.ShowToast -> { /* show toast */ }
+                is FeatureUiEffect.NavigateBack -> { /* navigate */ }
+            }
+        }
+    }
+
+    when (state) {
+        is FeatureUiState.Loading -> LoadingIndicator()
+        is FeatureUiState.Success -> SuccessContent((state as FeatureUiState.Success).data)
+        is FeatureUiState.Error -> ErrorMessage((state as FeatureUiState.Error).message)
+        is FeatureUiState.Idle -> EmptyState()
     }
 }
 ```
 
 **Key Principles:**
-- **View:** Passive, only updates UI (Fragment/Activity)
-- **Presenter:** Handles business logic, lifecycle-aware
-- **Contract:** Explicit interface between View and Presenter
-- **BaseContract:** Common view/presenter interfaces in `app/src/main/java/io/github/wawakaka/basicframeworkproject/base/BaseContract.kt`
+- **UiState:** Immutable data class representing screen state
+- **UiEvent:** User interactions or screen events
+- **UiEffect:** One-time side effects (toasts, navigation)
+- **ViewModel:** State holder with viewModelScope for lifecycle management
+- **StateFlow:** Reactive state observation in Compose
+- **Channel:** One-time effect delivery
+- **Unidirectional Data Flow:** Events → ViewModel → State → UI
+
+**Benefits over MVP:**
+- ✅ Survives configuration changes automatically
+- ✅ Type-safe state modeling with sealed classes
+- ✅ Better separation of concerns
+- ✅ Easier to test (no View mocking needed)
+- ✅ Perfect integration with Jetpack Compose
+- ✅ Built-in lifecycle management
+
+### MVP Pattern (Deprecated - Milestone 1-5)
+
+**⚠️ Note:** MVP pattern is deprecated as of Milestone 6. All new features should use TOAD pattern.
+
+The legacy MVP pattern used Presenters and Contracts:
+- **View:** Fragment/Activity implementing Contract.View
+- **Presenter:** Business logic handler with presenterScope
+- **Contract:** Interface between View and Presenter
+
+See MIGRATION_M6.md for migration guide from MVP to TOAD.
 
 ### Dependency Injection (Koin)
 
 **Module Organization:**
 - Each feature has its own Koin module (`*Module.kt`)
 - Modules are combined in `Modules.kt` → `applicationModules` list
-- Scoped injection: `factory`, `single`, `scope<Activity>`
+- Use `viewModel { }` for ViewModels, `single { }` for singletons, `factory { }` for new instances
 
-**Example Module Structure:**
+**Example Module Structure (TOAD):**
 ```kotlin
 val featureModule = module {
-    scope<FeatureActivity> {
-        scoped<FeatureContract.Presenter> { FeaturePresenter(get()) }
+    // ViewModel injection
+    viewModel { FeatureViewModel(getRatesUseCase = get()) }
+
+    // UseCase injection
+    factory { GetDataUseCase(repository = get()) }
+
+    // Repository injection
+    single { FeatureRepository(api = get()) }
+}
+```
+
+**ViewModel Injection in Fragment/Activity:**
+```kotlin
+class FeatureFragment : Fragment() {
+    private val viewModel: FeatureViewModel by viewModel()  // Koin extension
+
+    override fun onCreateView(...): View = ComposeView(requireContext()).apply {
+        setContent {
+            BasicFrameworkTheme {
+                FeatureScreen(viewModel = viewModel)
+            }
+        }
     }
+}
+```
+
+**ViewModel Injection in Composable (Alternative):**
+```kotlin
+@Composable
+fun FeatureScreen(
+    viewModel: FeatureViewModel = org.koin.androidx.compose.koinViewModel()
+) {
+    // Use viewModel
 }
 ```
 
 **Initialization:** Koin is started in `App.kt:onCreate()`
 
-### Async Operations Flow (Kotlin Coroutines)
+### Async Operations Flow (TOAD with Kotlin Coroutines)
 
-All async operations use Kotlin Coroutines (replacing RxJava since M3):
+All async operations use Kotlin Coroutines with ViewModel:
 
 ```
-User Action → Presenter
+User Action (Compose UI)
     ↓
-presenterScope.launch { ... }
+UiEvent dispatched to ViewModel.handleEvent()
+    ↓
+viewModelScope.launch { ... }
     ↓
 UseCase (suspend function)
     ↓
 Repository → API Call (suspend function)
     ↓
-Presenter processes result
+ViewModel updates _state.value
     ↓
-Presenter → View (UI update on main thread)
+StateFlow emits new state
+    ↓
+Compose UI recomposes automatically
 ```
 
 **Key Components:**
-- **BasePresenter:** Provides `presenterScope` with lifecycle management
+- **ViewModel:** State holder with viewModelScope
+- **StateFlow:** Reactive state observation
+- **Channel:** One-time side effects
 - **Suspend functions:** Used throughout domain and data layers
-- **presenterScope.launch:** Automatically cancelled when presenter detaches
-- **Lifecycle-aware:** Fragment `lifecycleScope` for UI lifecycle
+- **viewModelScope:** Automatically cancelled when ViewModel is cleared
+- **collectAsStateWithLifecycle:** Lifecycle-aware state collection in Compose
 
 ---
 
@@ -159,24 +287,37 @@ Presenter → View (UI update on main thread)
 app/
 ├── App.kt                          # Application class, Koin initialization
 ├── Modules.kt                      # Combined Koin modules
-├── base/                           # Base classes for MVP
-│   ├── BaseActivity.kt             # Base with RxPermissions
-│   ├── BaseFragment.kt             # Base with callbacks
-│   ├── BaseContract.kt             # MVP base interfaces
+├── base/                           # Base classes (deprecated MVP)
+│   ├── BaseActivity.kt             # Base activity
+│   ├── BaseFragment.kt             # Base fragment
+│   ├── BaseContract.kt             # MVP base interfaces (deprecated)
+│   ├── BasePresenter.kt            # MVP base presenter (deprecated)
 │   └── FragmentActivityCallbacks.kt
 ├── presentation/                   # Main screen (permission check)
-│   ├── MainActivity.kt
-│   ├── MainPresenter.kt
-│   ├── MainContract.kt
-│   ├── MainModule.kt
+│   ├── MainActivity.kt             # Main activity with Compose
+│   ├── MainViewModel.kt            # TOAD ViewModel
+│   ├── MainModule.kt               # Koin module
+│   ├── MainPresenter.kt            # (deprecated)
+│   ├── MainContract.kt             # (deprecated)
 │   └── content/                    # Currency feature
-│       ├── CurrencyFragment.kt     # RecyclerView display
-│       ├── CurrencyPresenter.kt    # Business logic
-│       ├── CurrencyContract.kt
-│       ├── CurrencyModule.kt
-│       └── adapter/
-│           ├── CurrencyListAdapter.kt
-│           └── CurrencyListViewHolder.kt
+│       ├── CurrencyFragment.kt     # Compose UI host
+│       ├── CurrencyViewModel.kt    # TOAD ViewModel
+│       ├── CurrencyState.kt        # State/Event/Effect models
+│       ├── CurrencyModule.kt       # Koin module
+│       ├── CurrencyPresenter.kt    # (deprecated)
+│       └── CurrencyContract.kt     # (deprecated)
+├── presentation/ui/                # Compose UI components
+│   ├── theme/                      # Material 3 theme
+│   │   ├── Color.kt
+│   │   ├── Type.kt
+│   │   └── Theme.kt
+│   ├── components/                 # Reusable components
+│   │   ├── AppTopBar.kt
+│   │   ├── LoadingIndicator.kt
+│   │   ├── ErrorMessage.kt
+│   │   └── CurrencyListItem.kt
+│   └── screens/                    # Screen composables
+│       └── CurrencyScreen.kt       # Currency screen UI
 ├── domain/
 │   └── domainModules.kt            # Domain layer DI setup
 └── utilities/
@@ -185,9 +326,11 @@ app/
 
 **Dependencies:**
 - `domain` module
-- AndroidX libraries (AppCompat, Navigation, Material)
-- Koin for Android
-- RxAndroid, RxPermissions, RxBinding
+- AndroidX libraries (Lifecycle, ViewModel, Compose)
+- Jetpack Compose BOM 2024.02.00
+- Material 3 Compose
+- Koin for Android + Compose
+- Kotlin Coroutines
 
 ### 2. `domain` Module (Business Logic)
 
@@ -300,16 +443,28 @@ restapi/
 
 #### Dependency Injection
 - **Koin:** `3.5.3` - Lightweight DI framework
-- **Koin Android Scope:** `3.5.3` - Android lifecycle scopes
+- **Koin Compose:** `3.5.3` - ViewModel injection for Compose
 - **⚠️ Breaking Change:** Koin 3.x has API changes from 2.x
 
-#### UI Components
+#### Jetpack Compose (Milestone 5+)
+- **Compose BOM:** `2024.02.00` - Bill of Materials for version alignment
+- **Compose UI:** Core composable framework
+- **Compose Material 3:** Material Design 3 components
+- **Compose UI Tooling:** Preview and debugging tools
+- **Compose Navigation:** `2.7.6` - Navigation for Compose
+- **Compose Activity:** `1.8.1` - Activity integration
+- **Compose Lifecycle:** ViewModel and Runtime Compose integration
+
+#### AndroidX Lifecycle (TOAD Pattern)
+- **Lifecycle ViewModel Compose:** ViewModel integration for Compose
+- **Lifecycle Runtime Compose:** collectAsStateWithLifecycle support
+
+#### UI Components (Legacy - mostly deprecated)
 - **AndroidX Core KTX:** `1.12.0`
 - **AndroidX AppCompat:** `1.6.1`
-- **Material Design:** `1.11.0`
-- **ConstraintLayout:** `2.1.4`
-- **Navigation Component:** `2.7.6`
-- **ViewBinding:** Enabled (replaces Kotlin Synthetics)
+- **Material Design:** `1.11.0` - Used for Activities (deprecated for fragments)
+- **ConstraintLayout:** `2.1.4` - Not used (Compose uses Box/Column/Row)
+- **Navigation Component:** `2.7.6` - Fragment navigation (legacy)
 - **Anko:** `0.10.8` - Kotlin helpers (deprecated, consider removing)
 
 #### Other
@@ -317,6 +472,12 @@ restapi/
 
 #### Testing
 - **JUnit:** `4.13.2` - Unit testing framework
+- **Mockito Kotlin:** `5.1.0` - Mocking framework for Kotlin
+- **Coroutines Test:** `1.7.3` - Testing coroutines
+- **Arch Core Testing:** `2.2.0` - Testing LiveData and ViewModel
+- **Compose UI Test:** Compose UI testing framework
+- **AndroidX Test Runner:** `1.5.2` - Instrumented test runner
+- **Espresso Core:** `1.5.1` - UI testing
 
 ### Repository Information
 - **Maven Repositories:** Google, Maven Central, JitPack
@@ -424,8 +585,13 @@ io.github.wawakaka.<module>.<layer>.<feature>
 
 | Type | Pattern | Example |
 |------|---------|---------|
-| **Contract Interface** | `*Contract` | `CurrencyContract` |
-| **Presenter** | `*Presenter` | `CurrencyPresenter` |
+| **ViewModel** | `*ViewModel` | `CurrencyViewModel` |
+| **UiState** | `*UiState` | `CurrencyUiState` |
+| **UiEvent** | `*UiEvent` | `CurrencyUiEvent` |
+| **UiEffect** | `*UiEffect` | `CurrencyUiEffect` |
+| **State File** | `*State.kt` | `CurrencyState.kt` |
+| **Composable Screen** | `*Screen` | `CurrencyScreen` |
+| **Composable Component** | descriptive name | `AppTopBar`, `LoadingIndicator` |
 | **Activity** | `*Activity` | `MainActivity` |
 | **Fragment** | `*Fragment` | `CurrencyFragment` |
 | **API Interface** | `*Api` | `CurrencyRatesApi` |
@@ -433,8 +599,8 @@ io.github.wawakaka.<module>.<layer>.<feature>
 | **UseCase** | `*Usecase` | `GetLatestRatesUsecase` |
 | **Response Model** | `*Response` | `CurrencyRatesResponse` |
 | **Koin Module** | `*Module` | `CurrencyModule` |
-| **Adapter** | `*Adapter` | `CurrencyListAdapter` |
-| **ViewHolder** | `*ViewHolder` | `CurrencyListViewHolder` |
+| **Contract** (deprecated) | `*Contract` | `CurrencyContract` |
+| **Presenter** (deprecated) | `*Presenter` | `CurrencyPresenter` |
 
 ### Kotlin Best Practices
 
@@ -486,48 +652,91 @@ class MyPresenter : BasePresenter<MyContract.View>() {
 }
 ```
 
-### Kotlin Coroutines Patterns
+### Kotlin Coroutines Patterns (TOAD)
 
-#### Presenter with Coroutine Scope
-Always extend `BasePresenter` which provides `presenterScope`:
+#### ViewModel with viewModelScope
+ViewModels use `viewModelScope` for lifecycle-aware coroutines:
 
 ```kotlin
-class MyPresenter(
+class MyViewModel(
     private val usecase: MyUsecase
-) : BasePresenter<MyContract.View>(), MyContract.Presenter {
+) : ViewModel() {
 
-    override fun doAction() {
-        presenterScope.launch {
-            view?.showLoading()
+    private val _state = MutableStateFlow<MyUiState>(MyUiState.Idle)
+    val state: StateFlow<MyUiState> = _state.asStateFlow()
+
+    private val _effect = Channel<MyUiEffect>()
+    val effect: Flow<MyUiEffect> = _effect.receiveAsFlow()
+
+    fun handleEvent(event: MyUiEvent) {
+        when (event) {
+            is MyUiEvent.OnLoadData -> loadData()
+        }
+    }
+
+    private fun loadData() {
+        viewModelScope.launch {
+            _state.value = MyUiState.Loading
             try {
                 val data = usecase.getData()
-                view?.onSuccess(data)
+                _state.value = MyUiState.Success(data)
             } catch (e: Exception) {
-                view?.onError(e)
-            } finally {
-                view?.hideLoading()
+                _state.value = MyUiState.Error(e.message ?: "Unknown error")
+                _effect.send(MyUiEffect.ShowToast("Failed to load data"))
             }
         }
     }
-    // detach() inherited from BasePresenter - auto-cancels presenterScope
+    // viewModelScope automatically cancels when ViewModel is cleared
 }
 ```
 
-#### Fragment with Lifecycle Scope
-Use `lifecycleScope` for lifecycle-aware coroutines:
+#### Compose UI with State Collection
+Use `collectAsStateWithLifecycle()` for lifecycle-aware state observation:
 
 ```kotlin
-class MyFragment : Fragment() {
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+@Composable
+fun MyScreen(viewModel: MyViewModel = viewModel()) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-        button.setOnClickListener {
-            lifecycleScope.launch {
-                presenter.doAction()
+    LaunchedEffect(Unit) {
+        viewModel.handleEvent(MyUiEvent.OnLoadData)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is MyUiEffect.ShowToast -> { /* show toast */ }
             }
         }
     }
-    // lifecycleScope automatically cancels when fragment is destroyed
+
+    when (state) {
+        is MyUiState.Loading -> LoadingIndicator()
+        is MyUiState.Success -> SuccessContent((state as MyUiState.Success).data)
+        is MyUiState.Error -> ErrorMessage((state as MyUiState.Error).message)
+        is MyUiState.Idle -> EmptyState()
+    }
+}
+```
+
+#### Fragment Hosting Compose (Bridge Pattern)
+Fragments can host Compose UI with ViewModel injection:
+
+```kotlin
+class MyFragment : Fragment() {
+    private val viewModel: MyViewModel by viewModel()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View = ComposeView(requireContext()).apply {
+        setContent {
+            BasicFrameworkTheme {
+                MyScreen(viewModel = viewModel)
+            }
+        }
+    }
 }
 ```
 
@@ -547,55 +756,87 @@ suspend fun getLatestRates(): List<Pair<String, Double>> {
 }
 ```
 
-### MVP Lifecycle
+### TOAD Lifecycle
 
-**Fragment/Activity:**
+**ViewModel Lifecycle:**
+- ViewModel is created when first requested
+- Survives configuration changes (rotation, etc.)
+- Cleared when Activity/Fragment is permanently destroyed
+- `viewModelScope` automatically cancels all coroutines on clear
+
+**Fragment Lifecycle with ViewModel:**
 ```kotlin
-override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    super.onViewCreated(view, savedInstanceState)
-    presenter.attach(this)  // Attach view
-}
+class MyFragment : Fragment() {
+    private val viewModel: MyViewModel by viewModel()  // Koin injection
 
-override fun onDestroy() {
-    presenter.detach()      // Detach view, cleanup coroutines
-    super.onDestroy()
+    override fun onCreateView(...): View = ComposeView(requireContext()).apply {
+        setContent {
+            BasicFrameworkTheme {
+                MyScreen(viewModel = viewModel)
+            }
+        }
+    }
+    // ViewModel persists across configuration changes
+    // No manual cleanup needed
 }
 ```
 
-**Presenter (extends BasePresenter):**
+**Compose State Collection Lifecycle:**
 ```kotlin
-override fun attach(view: MyView) {
-    this.view = view
-    // Initialize coroutines if needed
-}
+@Composable
+fun MyScreen(viewModel: MyViewModel) {
+    // collectAsStateWithLifecycle handles lifecycle automatically
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-override fun detach() {
-    presenterScope.cancel()  // Cancel all ongoing coroutines
-    this.view = null
+    // LaunchedEffect runs when composition starts
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            // Handle one-time effects
+        }
+    }
+    // Collection stops when Composable leaves composition
 }
 ```
 
-### Error Handling
+### Error Handling (TOAD Pattern)
 
-**In Presenters (with Coroutines):**
+**In ViewModel:**
 ```kotlin
-presenterScope.launch {
-    try {
-        val data = usecase.getData()
-        view?.onGetDataSuccess(data)
-    } catch (e: Exception) {
-        view?.onGetDataFailed(e)
-    } finally {
-        view?.hideLoading()
+private fun loadData() {
+    viewModelScope.launch {
+        _state.value = MyUiState.Loading
+        try {
+            val data = usecase.getData()
+            _state.value = MyUiState.Success(data)
+        } catch (e: Exception) {
+            _state.value = MyUiState.Error(e.message ?: "Unknown error")
+            _effect.send(MyUiEffect.ShowToast("Failed to load data"))
+        }
     }
 }
 ```
 
-**In Views:**
+**In Compose UI:**
 ```kotlin
-override fun onGetDataFailed(throwable: Throwable) {
-    Log.e(TAG, "Error: ${throwable.message}")
-    // Show error message to user
+when (state) {
+    is MyUiState.Error -> {
+        ErrorMessage(
+            message = (state as MyUiState.Error).message,
+            onRetry = { viewModel.handleEvent(MyUiEvent.OnRetry) }
+        )
+    }
+    // ... other states
+}
+
+// Handle effects
+LaunchedEffect(Unit) {
+    viewModel.effect.collect { effect ->
+        when (effect) {
+            is MyUiEffect.ShowToast -> {
+                Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 }
 ```
 
@@ -623,22 +864,24 @@ override fun onGetDataFailed(throwable: Throwable) {
 
 ### Base Classes
 
-| File | Purpose |
-|------|---------|
-| `BaseActivity.kt` | Base activity with RxPermissions |
-| `BaseFragment.kt` | Base fragment with activity callbacks |
-| `BaseContract.kt` | MVP base interfaces |
-| `BasePresenter.kt` | Base presenter with `presenterScope` for coroutines |
-| `FragmentActivityCallbacks.kt` | Fragment-Activity communication |
+| File | Purpose | Status |
+|------|---------|--------|
+| `BaseActivity.kt` | Base activity | Active |
+| `BaseFragment.kt` | Base fragment with activity callbacks | Active |
+| `BaseContract.kt` | MVP base interfaces | Deprecated (M6) |
+| `BasePresenter.kt` | MVP base presenter | Deprecated (M6) |
+| `FragmentActivityCallbacks.kt` | Fragment-Activity communication | Active |
+
+**Note:** MVP base classes (BaseContract, BasePresenter) are deprecated. Use ViewModel for new features.
 
 ### Koin Modules
 
-| File | Purpose |
-|------|---------|
-| `Modules.kt` | Application module composition |
-| `MainModule.kt` | Main screen dependencies |
-| `CurrencyModule.kt` | Currency feature dependencies |
-| `domainModules.kt` | Domain layer dependencies |
+| File | Purpose | Contains |
+|------|---------|----------|
+| `Modules.kt` | Application module composition | All modules combined |
+| `MainModule.kt` | Main screen dependencies | MainViewModel (+ deprecated MainPresenter) |
+| `CurrencyModule.kt` | Currency feature dependencies | CurrencyViewModel (+ deprecated CurrencyPresenter) |
+| `domainModules.kt` | Domain layer dependencies | UseCases, Repositories, APIs |
 
 ### Navigation
 
@@ -658,62 +901,153 @@ override fun onGetDataFailed(throwable: Throwable) {
 
 ## Common Tasks
 
-### Adding a New Feature
+### Adding a New Feature (TOAD Pattern)
 
-1. **Create MVP Contract** (`*Contract.kt`):
+1. **Create State/Event/Effect Models** (`*State.kt`):
 ```kotlin
-interface FeatureContract {
-    interface View : BaseContract.View {
-        fun onDataLoaded(data: DataType)
-        fun onError(error: Throwable)
-    }
+sealed class FeatureUiState {
+    object Idle : FeatureUiState()
+    object Loading : FeatureUiState()
+    data class Success(val data: List<DataType>) : FeatureUiState()
+    data class Error(val message: String) : FeatureUiState()
+}
 
-    interface Presenter : BaseContract.Presenter<View> {
-        fun loadData()
-    }
+sealed class FeatureUiEvent {
+    object OnLoadData : FeatureUiEvent()
+    object OnRetry : FeatureUiEvent()
+    object OnRefresh : FeatureUiEvent()
+}
+
+sealed class FeatureUiEffect {
+    data class ShowToast(val message: String) : FeatureUiEffect()
+    object NavigateBack : FeatureUiEffect()
 }
 ```
 
-2. **Create Presenter** (`*Presenter.kt`):
+2. **Create ViewModel** (`*ViewModel.kt`):
 ```kotlin
-class FeaturePresenter(
+class FeatureViewModel(
     private val useCase: FeatureUseCase
-) : BasePresenter<FeatureContract.View>(), FeatureContract.Presenter {
+) : ViewModel() {
 
-    override fun loadData() {
-        presenterScope.launch {
+    private val _state = MutableStateFlow<FeatureUiState>(FeatureUiState.Idle)
+    val state: StateFlow<FeatureUiState> = _state.asStateFlow()
+
+    private val _effect = Channel<FeatureUiEffect>()
+    val effect: Flow<FeatureUiEffect> = _effect.receiveAsFlow()
+
+    fun handleEvent(event: FeatureUiEvent) {
+        when (event) {
+            is FeatureUiEvent.OnLoadData -> loadData()
+            is FeatureUiEvent.OnRetry -> loadData()
+            is FeatureUiEvent.OnRefresh -> loadData()
+        }
+    }
+
+    private fun loadData() {
+        viewModelScope.launch {
+            _state.value = FeatureUiState.Loading
             try {
                 val data = useCase.execute()
-                view?.onDataLoaded(data)
+                _state.value = FeatureUiState.Success(data)
             } catch (e: Exception) {
-                view?.onError(e)
+                _state.value = FeatureUiState.Error(e.message ?: "Unknown error")
+                _effect.send(FeatureUiEffect.ShowToast("Failed to load data"))
             }
         }
     }
-    // detach() inherited from BasePresenter - auto-cancels presenterScope
 }
 ```
 
-3. **Create Fragment/Activity** implementing `FeatureContract.View`
-
-4. **Create Koin Module** (`*Module.kt`):
+3. **Create Compose Screen** (`*Screen.kt`):
 ```kotlin
-val featureModule = module {
-    scope<FeatureActivity> {
-        scoped<FeatureContract.Presenter> {
-            FeaturePresenter(get())
+@Composable
+fun FeatureScreen(
+    viewModel: FeatureViewModel,
+    modifier: Modifier = Modifier
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.handleEvent(FeatureUiEvent.OnLoadData)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is FeatureUiEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+                is FeatureUiEffect.NavigateBack -> { /* navigate */ }
+            }
+        }
+    }
+
+    Scaffold(
+        topBar = { AppTopBar(title = "Feature Title") }
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
+            when (state) {
+                is FeatureUiState.Idle -> EmptyState()
+                is FeatureUiState.Loading -> LoadingIndicator()
+                is FeatureUiState.Success -> {
+                    val data = (state as FeatureUiState.Success).data
+                    // Display success content
+                }
+                is FeatureUiState.Error -> {
+                    val message = (state as FeatureUiState.Error).message
+                    ErrorMessage(
+                        message = message,
+                        onRetry = { viewModel.handleEvent(FeatureUiEvent.OnRetry) }
+                    )
+                }
+            }
         }
     }
 }
 ```
 
-5. **Add to `Modules.kt`:**
+4. **Create Fragment** (if needed to host Compose):
+```kotlin
+class FeatureFragment : Fragment() {
+    private val viewModel: FeatureViewModel by viewModel()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View = ComposeView(requireContext()).apply {
+        setContent {
+            BasicFrameworkTheme {
+                FeatureScreen(viewModel = viewModel)
+            }
+        }
+    }
+}
+```
+
+5. **Create Koin Module** (`*Module.kt`):
+```kotlin
+val featureModule = module {
+    viewModel { FeatureViewModel(useCase = get()) }
+    factory { FeatureUseCase(repository = get()) }
+    single { FeatureRepository(api = get()) }
+}
+```
+
+6. **Add to `Modules.kt`:**
 ```kotlin
 val applicationModules = listOf(
     // existing modules...
     featureModule
 )
 ```
+
+7. **Write Tests:**
+   - Unit tests for ViewModel (state transitions, event handling)
+   - Compose UI tests for screen rendering
+   - See MIGRATION_M6.md for testing examples
 
 ### Adding a New API Endpoint
 
@@ -881,9 +1215,10 @@ class MyViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
 ## Testing Strategy
 
-### Current State
-- **Unit Tests:** Minimal setup with JUnit 4
-- **Instrumented Tests:** Basic AndroidJUnit4 runner configured
+### Current State (Milestone 6)
+- **Unit Tests:** ViewModel testing with Mockito Kotlin
+- **Integration Tests:** Compose UI testing
+- **Test Coverage:** 26 unit tests + 32 integration tests = 58 total tests
 - **Test Location:** `app/src/test/` (unit), `app/src/androidTest/` (instrumented)
 
 ### Test Configuration
@@ -893,26 +1228,165 @@ class MyViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
 dependencies {
-    testImplementation 'junit:junit:4.13'
+    // Unit testing
+    testImplementation libs.junit
+    testImplementation libs.kotlinx.coroutines.test
+    testImplementation libs.mockito.kotlin
+    testImplementation libs.androidx.arch.core.testing
+
+    // Compose UI testing
+    androidTestImplementation platform(libs.compose.bom)
+    androidTestImplementation libs.compose.ui.test.junit4
+    debugImplementation libs.compose.ui.test.manifest
+    androidTestImplementation libs.androidx.test.runner
+    androidTestImplementation libs.androidx.test.espresso.core
 }
 ```
 
-### Recommended Testing Approach
+### Testing Approach (TOAD Pattern)
+
+#### Unit Tests (ViewModel Layer)
+Test ViewModel state transitions and event handling:
+
+```kotlin
+@OptIn(ExperimentalCoroutinesApi::class)
+class FeatureViewModelTest {
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    private val testDispatcher = StandardTestDispatcher()
+
+    @Mock
+    lateinit var useCase: FeatureUseCase
+
+    private lateinit var viewModel: FeatureViewModel
+
+    @Before
+    fun setUp() {
+        Dispatchers.setMain(testDispatcher)
+        MockitoAnnotations.openMocks(this)
+        viewModel = FeatureViewModel(useCase)
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `handleEvent OnLoadData success should emit Success state`() = runTest {
+        // Arrange
+        val mockData = listOf("data1", "data2")
+        whenever(useCase.execute()).thenReturn(mockData)
+
+        // Act
+        viewModel.handleEvent(FeatureUiEvent.OnLoadData)
+        advanceUntilIdle()
+
+        // Assert
+        val finalState = viewModel.state.value
+        assertTrue(finalState is FeatureUiState.Success)
+        assertEquals(mockData, (finalState as FeatureUiState.Success).data)
+    }
+
+    @Test
+    fun `handleEvent OnLoadData failure should emit Error state`() = runTest {
+        // Arrange
+        val errorMessage = "Network error"
+        whenever(useCase.execute()).thenThrow(RuntimeException(errorMessage))
+
+        // Act
+        viewModel.handleEvent(FeatureUiEvent.OnLoadData)
+        advanceUntilIdle()
+
+        // Assert
+        val finalState = viewModel.state.value
+        assertTrue(finalState is FeatureUiState.Error)
+        assertEquals(errorMessage, (finalState as FeatureUiState.Error).message)
+    }
+}
+```
+
+**Benefits:**
+- ✅ No View mocking needed
+- ✅ Direct state assertions
+- ✅ Test state transitions
+- ✅ Test effect emissions
+
+#### Compose UI Integration Tests
+Test UI rendering and interactions:
+
+```kotlin
+@RunWith(AndroidJUnit4::class)
+class FeatureScreenTest {
+    @get:Rule
+    val composeTestRule = createComposeRule()
+
+    @Test
+    fun successState_shouldShowContent() {
+        // Arrange
+        val mockData = listOf("Item 1", "Item 2")
+
+        composeTestRule.setContent {
+            BasicFrameworkTheme {
+                FeatureScreenContent(
+                    state = FeatureUiState.Success(mockData),
+                    onEvent = {}
+                )
+            }
+        }
+
+        // Assert
+        composeTestRule.onNodeWithText("Item 1").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Item 2").assertIsDisplayed()
+    }
+
+    @Test
+    fun loadingState_shouldShowLoadingIndicator() {
+        composeTestRule.setContent {
+            BasicFrameworkTheme {
+                FeatureScreenContent(
+                    state = FeatureUiState.Loading,
+                    onEvent = {}
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("Loading").assertIsDisplayed()
+    }
+
+    @Test
+    fun errorState_shouldShowErrorWithRetryButton() {
+        composeTestRule.setContent {
+            BasicFrameworkTheme {
+                FeatureScreenContent(
+                    state = FeatureUiState.Error("Network error"),
+                    onEvent = {}
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("Network error").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
+    }
+}
+```
 
 #### Unit Tests (Domain Layer)
 - Test UseCases in isolation
 - Mock repositories with suspend functions
 - Test data transformations and business logic
 
-#### Presenter Tests
-- Test presenter logic with mocked views
-- Use coroutine test libraries (kotlinx-coroutines-test)
-- Verify view method calls in proper order
-- Test error handling with try-catch blocks
-
-#### Integration Tests
-- Test repository with real API (or mock server)
+#### Integration Tests (Repository Layer)
+- Test repository with mock API
 - Test end-to-end data flow
+- Use MockWebServer for API testing
+
+### Test Coverage Goals
+- **ViewModels:** 90%+ coverage (state transitions, events, effects, error handling)
+- **Compose UI:** 80%+ coverage (rendering, interactions, edge cases)
+- **UseCases:** 95%+ coverage (business logic)
+- **Repositories:** 80%+ coverage (data access)
 
 ---
 
@@ -927,18 +1401,26 @@ dependencies {
 - Keep `domain` module pure Kotlin (no Android imports)
 
 #### 2. Architecture Patterns
-**Always follow MVP pattern:**
-- Create `*Contract.kt` interfaces first
-- Keep Views passive (UI updates only)
-- Put business logic in Presenters
+**Always follow TOAD pattern (Milestone 6+):**
+- Create `*State.kt` with UiState/UiEvent/UiEffect sealed classes first
+- Create ViewModel extending `androidx.lifecycle.ViewModel`
+- Use StateFlow for state, Channel for effects
+- Keep UI layer passive (Compose observes state)
+- Put business logic in ViewModels
 - Keep UseCases focused on single operations
 
-#### 3. Coroutine Lifecycle Management (M3+)
-**Kotlin Coroutines handle resource cleanup automatically:**
-- Use `presenterScope` in presenters (extends BasePresenter)
-- No manual subscription disposal needed
-- Scope automatically cancels when presenter detaches
-- Use `lifecycleScope` in Fragments for UI lifecycle
+**⚠️ MVP Pattern is Deprecated:**
+- Do NOT create new Presenters or Contracts
+- Use TOAD pattern for all new features
+- See MIGRATION_M6.md for migration guide
+
+#### 3. Coroutine Lifecycle Management (TOAD)
+**ViewModel handles lifecycle automatically:**
+- Use `viewModelScope` in ViewModels (automatically provided)
+- ViewModels survive configuration changes
+- `viewModelScope` cancels when ViewModel is cleared
+- Use `collectAsStateWithLifecycle()` in Compose for state observation
+- No manual scope management needed
 
 #### 4. Threading
 **Follow standard threading pattern:**
@@ -948,22 +1430,26 @@ dependencies {
 ```
 
 #### 5. Dependency Injection
-**Use Koin 3.x properly:**
+**Use Koin 3.x with ViewModels:**
 - **⚠️ Breaking Change:** Project uses Koin 3.5.3 (migrated from 2.0.1)
 - Create feature-specific modules
-- Use appropriate scopes (`factory`, `single`, `scope<Activity>`)
+- Use `viewModel { }` for ViewModels
+- Use `factory { }` for UseCases (new instance each time)
+- Use `single { }` for Repositories (singleton)
+- Add koin-androidx-compose for Compose support
 - Add modules to `applicationModules` list in `Modules.kt`
+- Inject ViewModels with `by viewModel()` in Fragment/Activity
 - **Note:** Some Koin APIs changed in 3.x - check imports and method calls
-- Import paths may have changed (e.g., `org.koin.android.ext.android`)
 
-#### 6. View Binding
-**Current State:** ViewBinding is enabled (but not yet migrated)
-- **⚠️ Legacy Code:** Code still uses Kotlin Synthetics (deprecated since Kotlin 1.4.20)
-- **Skip ViewBinding Migration:** Will migrate directly to Jetpack Compose in Milestone 5
-- **Do not** add ViewBinding to new code - use Compose instead
-- **Next Step:** Full migration to Jetpack Compose (Milestone 5)
-
-**Note:** ViewBinding is an intermediate step. Since we're planning to use Compose, we skip ViewBinding and go directly to Compose for all UI code.
+#### 6. UI Framework
+**Current State:** 100% Jetpack Compose (Milestone 5+)
+- **✅ Completed:** All UI migrated to Jetpack Compose with Material 3
+- **✅ Zero XML layouts:** All layouts deleted
+- **✅ No ViewBinding:** Skipped entirely, went directly to Compose
+- **✅ No Kotlin Synthetics:** Completely removed
+- **Always use Compose** for all UI code
+- Use Material 3 components (Scaffold, TopAppBar, Card, etc.)
+- Follow Compose best practices (stateless composables, state hoisting)
 
 #### 7. Error Handling
 **Implement proper error callbacks:**
@@ -979,66 +1465,89 @@ dependencies {
 4. **Test compilation** - Run `./gradlew build` after changes
 5. **Check Koin modules** - Ensure new dependencies are wired correctly
 
-### 📝 When Adding Features
+### 📝 When Adding Features (TOAD Pattern)
 
-1. **Start with Contract** - Define View and Presenter interfaces
-2. **Create UseCase** - Implement business logic in domain layer
-3. **Add Repository** (if needed) - For new data sources
-4. **Implement Presenter** - Wire UseCase to View
-5. **Create View** - Fragment/Activity implementing Contract.View
-6. **Setup Koin** - Create module and add to composition
-7. **Test** - Verify build and runtime behavior
+1. **Define State Models** - Create `*State.kt` with UiState/UiEvent/UiEffect
+2. **Create ViewModel** - Implement state management with StateFlow and Channel
+3. **Create UseCase** - Implement business logic in domain layer
+4. **Add Repository** (if needed) - For new data sources
+5. **Create Compose UI** - Build screen composable with state observation
+6. **Create Fragment** (if needed) - Host Compose UI with ComposeView
+7. **Setup Koin** - Create module with `viewModel { }` and add to composition
+8. **Write Tests** - ViewModel unit tests + Compose UI integration tests
+9. **Test** - Verify build and runtime behavior
 
 ### 🚫 What to Avoid
 
 - **Don't** add Android dependencies to `domain` module
 - **Don't** create cyclic dependencies between modules
-- **Don't** forget to dispose RxJava subscriptions
-- **Don't** put business logic in Views (Fragments/Activities)
-- **Don't** access UI from background threads
-- **Don't** skip Contract definitions for new features
-- **Don't** mix different architectural patterns
+- **Don't** create new Presenters or Contracts (MVP is deprecated)
+- **Don't** put business logic in Composables (use ViewModel)
+- **Don't** mutate state directly (use MutableStateFlow.value = ...)
+- **Don't** collect state without lifecycle awareness (use collectAsStateWithLifecycle)
+- **Don't** skip State/Event/Effect definitions for new features
+- **Don't** mix MVP and TOAD patterns in the same feature
 - **Don't** create god objects or god classes
 - **Don't** add features without corresponding Koin modules
+- **Don't** use XML layouts (use Jetpack Compose)
 
 ### 🔧 When Refactoring
 
 1. **Maintain architecture** - Don't break Clean Architecture
-2. **Keep MVP pattern** - Preserve View/Presenter separation
-3. **Update all layers** - If changing data models, update all layers
-4. **Update Koin modules** - Adjust DI configuration as needed
-5. **Run tests** - Verify nothing broke
+2. **Follow TOAD pattern** - Use ViewModel/State/Event/Effect
+3. **Migrate from MVP** - See MIGRATION_M6.md for guidance
+4. **Update all layers** - If changing data models, update all layers
+5. **Update Koin modules** - Adjust DI configuration as needed (use `viewModel { }`)
+6. **Update tests** - ViewModel tests + Compose UI tests
+7. **Run tests** - Verify nothing broke
 
 ### 📚 Common Pitfalls
 
-#### Memory Leaks
-- Holding View references after detach (use weak references or nullify)
-- Static references to Activities/Fragments
-- Not properly closing Koin scopes in Activity/Fragment destroy
-- Presenter scope not properly initialized in BasePresenter
+#### State Management Issues
+- Directly accessing `_state` instead of exposing `state.asStateFlow()`
+- Forgetting to use `collectAsStateWithLifecycle()` (causes memory leaks)
+- Mutating state from Composables instead of ViewModel
+- Not handling all state branches in `when` expression
+- Using `mutableStateOf` in ViewModel (use StateFlow instead)
+
+#### Effect Handling Issues
+- Using StateFlow for one-time effects (use Channel instead)
+- Not collecting effects in LaunchedEffect
+- Forgetting to handle all effect types
 
 #### Threading Issues
 - Accessing UI from background threads
 - Blocking operations on main thread
 - Not using suspend functions with proper context switching
+- Forgetting `viewModelScope.launch` in ViewModel
 
 #### Dependency Issues
 - Circular dependencies in Koin
 - Wrong dependency directions between modules
 - Missing Koin module registrations
+- Using `scope<Activity>` instead of `viewModel { }` for ViewModels
+
+#### Compose UI Issues
+- Not using `remember` for expensive computations
+- Side effects in Composable body (use LaunchedEffect)
+- Recomposition loops from unstable parameters
+- Not using `derivedStateOf` for computed state
 
 ### 🎯 Best Practices Summary
 
 1. **Separation of Concerns** - Each class has one responsibility
-2. **Interface Segregation** - Use contracts for decoupling
-3. **Dependency Inversion** - Depend on abstractions (interfaces)
-4. **Single Responsibility** - Each UseCase = one operation
-5. **Coroutine Patterns** - Use Kotlin Coroutines consistently (suspend functions)
-6. **Lifecycle Awareness** - Respect Android lifecycle (presenterScope, lifecycleScope)
-7. **Resource Cleanup** - Proper scope management, null references appropriately
-8. **Error Handling** - Handle all error cases with try-catch in coroutines
-9. **Testability** - Write testable, mockable code with suspend functions
-10. **Consistency** - Follow established patterns (MVP, BasePresenter, ActivityResultContracts)
+2. **TOAD Pattern** - State/Event/Effect for clear data flow
+3. **Immutable State** - Use sealed classes and data classes
+4. **Unidirectional Data Flow** - Events → ViewModel → State → UI
+5. **Single Responsibility** - Each UseCase = one operation
+6. **Coroutine Patterns** - Use Kotlin Coroutines consistently (suspend functions)
+7. **Lifecycle Awareness** - Use viewModelScope, collectAsStateWithLifecycle
+8. **Resource Cleanup** - ViewModel clears automatically, no manual cleanup
+9. **Error Handling** - Sealed Error states, effect channels for toasts
+10. **Testability** - Write testable code (ViewModels easy to test)
+11. **Compose Best Practices** - Stateless composables, state hoisting
+12. **Material 3** - Use Material 3 components consistently
+13. **Consistency** - Follow established patterns (TOAD, Compose, Koin ViewModels)
 
 ---
 
@@ -1057,12 +1566,55 @@ dependencies {
 
 - **README.md** - Project overview
 - **MIGRATION_M1.md** - Milestone 1 migration guide (Gradle 8.5, AGP 8.2.2, Version Catalog)
+- **MIGRATION_M6.md** - Milestone 6 migration guide (MVP → TOAD pattern)
+- **MILESTONE_5_SUMMARY.md** - Jetpack Compose migration summary
+- **MANUAL_TESTING_M6.md** - Manual testing checklist for M6
 - **API Documentation** - https://api.ratesapi.io/
 - **Gradle Version Catalog** - https://docs.gradle.org/current/userguide/platforms.html
+- **Jetpack Compose** - https://developer.android.com/jetpack/compose
+- **Material 3** - https://m3.material.io/
 
 ---
 
 ## Change Log
+
+### 2026-01-24 (Milestone 6 Complete - TOAD Architecture Migration)
+- **Milestone 6: MVP → TOAD Architecture Migration**
+  - Added koin-androidx-compose 3.5.3 for ViewModel injection in Compose
+  - Created TOAD pattern State/Event/Effect models:
+    * CurrencyState.kt (CurrencyUiState, CurrencyUiEvent, CurrencyUiEffect)
+    * Inline State/Event/Effect in MainViewModel.kt
+  - Created ViewModels with StateFlow + Channel:
+    * CurrencyViewModel.kt (state management for currency feature)
+    * MainViewModel.kt (permission flow management)
+  - Updated Koin modules for ViewModel injection:
+    * CurrencyModule.kt - added `viewModel { CurrencyViewModel(...) }`
+    * MainModule.kt - added `viewModel { MainViewModel() }`
+  - Refactored Compose UI to use ViewModels:
+    * CurrencyScreen.kt - collectAsStateWithLifecycle, handleEvent, effect collection
+    * CurrencyFragment.kt - inject ViewModel, pass to Compose
+    * MainActivity.kt - MainScreenContent with ViewModel, permission flow
+  - Deprecated MVP components with @Deprecated annotations:
+    * CurrencyPresenter.kt, CurrencyContract.kt
+    * MainPresenter.kt, MainContract.kt
+    * BasePresenter.kt, BaseContract.kt
+  - Created comprehensive documentation:
+    * MIGRATION_M6.md (814 lines) - complete migration guide
+    * MANUAL_TESTING_M6.md (530 lines) - manual testing checklist
+  - Added comprehensive testing:
+    * CurrencyViewModelTest.kt (12 tests) - state, events, effects
+    * MainViewModelTest.kt (14 tests) - permission flow
+    * CurrencyScreenTest.kt (13 tests) - Compose UI integration
+    * ComponentsTest.kt (19 tests) - component testing
+    * Total: 58 tests (26 unit + 32 integration)
+  - Updated CLAUDE.md with TOAD patterns and best practices
+  - **Architecture Benefits:**
+    * ✅ Configuration change survival (ViewModel persists)
+    * ✅ Type-safe state with sealed classes
+    * ✅ Better separation of concerns
+    * ✅ Easier testing (no View mocking)
+    * ✅ Perfect Compose integration
+- **Next:** Milestone 7 - Remove deprecated MVP code, enhance testing
 
 ### 2026-01-24 (Milestone 5 Complete - Jetpack Compose Migration)
 - **Milestone 5: Jetpack Compose UI Migration with Material 3**
@@ -1147,15 +1699,16 @@ dependencies {
 | **M1** | ✅ | 2026-01-10 | Build modernization (Gradle 8.5, Kotlin 2.0.21, JDK 21) |
 | **M3** | ✅ | 2026-01-10 | Kotlin Coroutines & Flow (replace RxJava) |
 | **M4** | ✅ | 2026-01-11 | Permission modernization (ActivityResultContracts) |
-| **M5** | ✅ | 2026-01-24 | **Jetpack Compose UI migration with Material 3** |
+| **M5** | ✅ | 2026-01-24 | Jetpack Compose UI migration with Material 3 |
+| **M6** | ✅ | 2026-01-24 | **Architecture modernization (MVP → TOAD)** |
 
 ### Upcoming Milestones 🚀
 
 | Milestone | Status | Target | Focus |
 |-----------|--------|--------|-------|
-| **M6** | 📋 Planned | TBD | Architecture modernization (MVP → TOAD) |
-| **M7** | 📋 Planned | TBD | Comprehensive testing (Unit, Instrumented, E2E) |
+| **M7** | 📋 Planned | TBD | Code cleanup (remove deprecated MVP code) |
 | **M8** | 📋 Planned | TBD | Multi-module feature architecture |
+| **M9** | 📋 Planned | TBD | Comprehensive E2E testing |
 
 ### Milestone 5: Jetpack Compose UI Migration ✅ COMPLETE
 
@@ -1184,53 +1737,51 @@ dependencies {
 
 **See:** MILESTONE_5_SUMMARY.md for complete details
 
-### Milestone 6: Architecture Evolution (MVP → TOAD/MVVM)
+### Milestone 6: Architecture Evolution (MVP → TOAD) ✅ COMPLETE
 
-**Rationale for Change:**
-- MVP has limitations with state management in modern Android
-- Coroutines + Flow provide better reactive patterns than RxJava
-- TOAD (The Opinionated Android Design) or MVVM better suited for:
-  - Screen state modeling
-  - Event handling
-  - Side effects management
-  - Testing complex UI logic
+**Status:** Completed 2026-01-24
 
-**Architecture Options to Evaluate:**
-1. **TOAD Pattern:** Combines MVVM with state holders
-   - UiState data class for screen state
-   - UiEvent sealed class for user interactions
-   - ViewModel + StateFlow/LiveData
-   - Side effects handling with Channel/StateFlow
+**What Was Done:**
+- ✅ Created State/Event/Effect models (CurrencyState.kt)
+- ✅ Implemented ViewModels with StateFlow + Channel
+- ✅ Updated all Compose UI to use ViewModels
+- ✅ Refactored Koin modules for ViewModel injection
+- ✅ Deprecated all MVP components (@Deprecated annotations)
+- ✅ Wrote 58 comprehensive tests (26 unit + 32 integration)
+- ✅ Created migration documentation (MIGRATION_M6.md)
+- ✅ Created manual testing checklist (MANUAL_TESTING_M6.md)
+- ✅ Updated CLAUDE.md with TOAD patterns
 
-2. **MVI Pattern:** Event → Intent → Model → View
-   - Unidirectional data flow
-   - Pure reducer functions
-   - Immutable state
+**Pattern Selected: TOAD (The Opinionated Android Design)**
+- **UiState:** Sealed class for screen state (Idle, Loading, Success, Error)
+- **UiEvent:** Sealed class for user interactions
+- **UiEffect:** Channel for one-time side effects (toasts, navigation)
+- **ViewModel:** State holder with viewModelScope
+- **StateFlow:** Reactive state observation
+- **Unidirectional Data Flow:** Event → ViewModel → State → UI
 
-3. **Enhanced MVVM:** Modern ViewModel + Compose
-   - ViewModel as state holder
-   - Compose Recomposition on state change
-   - Simpler than TOAD for simpler screens
+**Key Changes Made:**
+- ✅ Removed Presenter layer (ViewModel replaces it)
+- ✅ Introduced UiState/UiEvent/UiEffect pattern
+- ✅ Refactored Koin modules: `viewModel { }` instead of `scope<Activity>`
+- ✅ Updated Compose UI: `collectAsStateWithLifecycle()` for state observation
+- ✅ Simplified error handling: Sealed Error state + effect channel
+- ✅ Parallel migration strategy (MVP deprecated, not deleted yet)
 
-**Proposed Approach:**
-- Evaluate with Currency feature (existing most complex feature)
-- Create alternate implementation with selected pattern
-- Document comparison and decision
-- Plan migration path for other features
+**Benefits Achieved:**
+- ✅ Configuration changes: State survives rotation automatically
+- ✅ Separation of concerns: UI, ViewModel, UseCase clearly separated
+- ✅ Easier state management: StateFlow handles complexity
+- ✅ Improved testability: No View mocking, direct state assertions
+- ✅ Modern Android standards: Follows official Google recommendations
+- ✅ Better Compose integration: Perfect fit for declarative UI
 
-**Key Changes Expected:**
-- Remove Presenter layer (ViewModel replaces it)
-- Introduce UiState/UiEvent pattern
-- Refactor Koin modules for ViewModels
-- Update Compose UI to consume state
-- Simplify error handling with sealed types
+**Testing Coverage:**
+- **ViewModel Unit Tests:** 26 tests (CurrencyViewModel: 12, MainViewModel: 14)
+- **Compose UI Integration Tests:** 32 tests (CurrencyScreen: 13, Components: 19)
+- **Total:** 58 tests with high coverage
 
-**Benefits:**
-- Better separation of concerns
-- Easier state management with Compose
-- Improved testability
-- Modern Android architecture standards
-- Better handling of configuration changes
+**See:** MIGRATION_M6.md for complete migration guide and examples
 
 ---
 

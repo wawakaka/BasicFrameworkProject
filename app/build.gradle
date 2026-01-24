@@ -114,8 +114,21 @@ dependencies {
 
     // Dependency Injection
     implementation libs.koin.android
-    implementation libs.koin.androidx.scope
+    implementation libs.koin.androidx.compose
 
     // Testing
     testImplementation libs.junit
+    testImplementation libs.kotlinx.coroutines.test
+    testImplementation libs.mockito.kotlin
+    testImplementation libs.androidx.arch.core.testing
+
+    // Android Instrumented Tests
+    androidTestImplementation libs.androidx.test.runner
+    androidTestImplementation libs.androidx.test.espresso.core
+    androidTestImplementation libs.junit
+
+    // Compose UI Testing
+    androidTestImplementation platform(libs.compose.bom)
+    androidTestImplementation libs.compose.ui.test.junit4
+    debugImplementation libs.compose.ui.test.manifest
 }

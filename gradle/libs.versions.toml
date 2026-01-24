@@ -51,6 +51,8 @@ chuck = "1.1.0"
 
 # Testing
 junit = "4.13.2"
+mockitoKotlin = "5.1.0"
+androidxArchCore = "2.2.0"
 androidxTestRunner = "1.5.2"
 androidxTestEspresso = "3.5.1"
 
@@ -97,6 +99,10 @@ compose-runtime = { group = "androidx.compose.runtime", name = "runtime" }
 # Compose Material 3
 compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 
+# Compose UI Testing
+compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+
 # Compose Activity Integration
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "composeActivity" }
 
@@ -116,7 +122,7 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 
 # Dependency Injection
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
-koin-androidx-scope = { group = "io.insert-koin", name = "koin-androidx-scope", version.ref = "koin" }
+koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
 
 # Utilities
 anko = { group = "org.jetbrains.anko", name = "anko", version.ref = "anko" }
@@ -124,6 +130,9 @@ chuck = { group = "com.readystatesoftware.chuck", name = "library", version.ref 
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
+androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "androidxArchCore" }
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
 androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxTestEspresso" }
 
