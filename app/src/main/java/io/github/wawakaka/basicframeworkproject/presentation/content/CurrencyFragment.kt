@@ -8,7 +8,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import io.github.wawakaka.basicframeworkproject.presentation.ui.screens.CurrencyScreen
-import io.github.wawakaka.basicframeworkproject.presentation.ui.theme.BasicFrameworkTheme
+import io.github.wawakaka.ui.theme.BasicFrameworkTheme
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**

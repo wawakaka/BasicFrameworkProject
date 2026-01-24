@@ -4,17 +4,17 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * Unit tests for MainViewModel (TOAD pattern)
@@ -119,7 +119,7 @@ class MainViewModelTest {
         val effects = mutableListOf<MainUiEffect>()
 
         // Collect effects
-        val job = kotlinx.coroutines.launch {
+        val job = launch {
             viewModel.effect.collect { effect ->
                 effects.add(effect)
             }
@@ -143,7 +143,7 @@ class MainViewModelTest {
         val states = mutableListOf<MainUiState>()
 
         // Collect states
-        val job = kotlinx.coroutines.launch {
+        val job = launch {
             viewModel.state.collect { state ->
                 states.add(state)
             }
@@ -169,7 +169,7 @@ class MainViewModelTest {
         val states = mutableListOf<MainUiState>()
 
         // Collect states
-        val job = kotlinx.coroutines.launch {
+        val job = launch {
             viewModel.state.collect { state ->
                 states.add(state)
             }
@@ -196,7 +196,7 @@ class MainViewModelTest {
         advanceUntilIdle()
 
         val effects = mutableListOf<MainUiEffect>()
-        val job = kotlinx.coroutines.launch {
+        val job = launch {
             viewModel.effect.collect { effect ->
                 effects.add(effect)
             }
@@ -220,7 +220,7 @@ class MainViewModelTest {
         val effects = mutableListOf<MainUiEffect>()
 
         // Act - Collect effects twice
-        val job1 = kotlinx.coroutines.launch {
+        val job1 = launch {
             viewModel.effect.collect { effect ->
                 effects.add(effect)
             }
@@ -232,7 +232,7 @@ class MainViewModelTest {
         job1.cancel()
 
         val effectsSecondCollector = mutableListOf<MainUiEffect>()
-        val job2 = kotlinx.coroutines.launch {
+        val job2 = launch {
             viewModel.effect.collect { effect ->
                 effectsSecondCollector.add(effect)
             }

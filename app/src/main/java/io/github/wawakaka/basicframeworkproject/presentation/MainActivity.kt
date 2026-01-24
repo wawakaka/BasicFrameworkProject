@@ -26,8 +26,8 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.wawakaka.basicframeworkproject.R
 import io.github.wawakaka.basicframeworkproject.presentation.content.CurrencyFragment
-import io.github.wawakaka.basicframeworkproject.presentation.ui.components.AppTopBar
-import io.github.wawakaka.basicframeworkproject.presentation.ui.theme.BasicFrameworkTheme
+import io.github.wawakaka.ui.components.AppTopBar
+import io.github.wawakaka.ui.theme.BasicFrameworkTheme
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**

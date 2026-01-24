@@ -1,4 +1,4 @@
-package io.github.wawakaka.basicframeworkproject.presentation.ui.theme
+package io.github.wawakaka.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

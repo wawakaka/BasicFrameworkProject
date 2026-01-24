@@ -1,0 +1,52 @@
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+}
+
+apply from: "$rootDir/dep/build-lib.gradle"
+
+android {
+    namespace 'io.github.wawakaka.ui'
+
+    buildFeatures {
+        compose true
+    }
+}
+
+dependencies {
+    // Kotlin
+    implementation libs.kotlin.stdlib
+
+    // AndroidX Core
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+
+    // Material Design
+    implementation libs.material
+
+    // Jetpack Compose BOM
+    implementation platform(libs.compose.bom)
+
+    // Compose UI
+    implementation libs.compose.ui
+    implementation libs.compose.ui.graphics
+    implementation libs.compose.ui.tooling.preview
+    implementation libs.compose.foundation
+    implementation libs.compose.runtime
+
+    // Compose Material 3
+    implementation libs.compose.material3
+    implementation libs.compose.material.icons.extended
+
+    // Compose Activity Integration
+    implementation libs.androidx.activity.compose
+
+    // Compose Navigation
+    implementation libs.androidx.navigation.compose
+
+    // Compose Lifecycle
+    implementation libs.androidx.lifecycle.runtime.compose
+
+    // UI module should not depend on Domain or DI libraries if it's strictly for components
+}

@@ -5,20 +5,21 @@ import io.github.wawakaka.domain.usecase.GetLatestRatesUsecase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * Unit tests for CurrencyViewModel (TOAD pattern)
@@ -171,7 +172,7 @@ class CurrencyViewModelTest {
         val states = mutableListOf<CurrencyUiState>()
 
         // Collect states
-        val job = kotlinx.coroutines.launch {
+        val job = launch {
             viewModel.state.collect { state ->
                 states.add(state)
             }
@@ -199,7 +200,7 @@ class CurrencyViewModelTest {
         val states = mutableListOf<CurrencyUiState>()
 
         // Collect states
-        val job = kotlinx.coroutines.launch {
+        val job = launch {
             viewModel.state.collect { state ->
                 states.add(state)
             }
