@@ -26,7 +26,22 @@ Modern Android application demonstrating **Clean Architecture** with **TOAD patt
 
 ## API
 
-This demo app uses the [Rates API](https://ratesapi.io/documentation/) to display live currency exchange rates. No API key required.
+This demo app uses [ExchangeRatesAPI](https://exchangeratesapi.io/) to display live currency
+exchange rates.
+
+### API Key setup
+
+Add your API key to the project root `local.properties`:
+
+```properties
+API_KEY=your_api_key_here
+```
+
+(Optional) You can also override the base URL via `local.properties`:
+
+```properties
+BASE_URL=http://api.exchangeratesapi.io/v1/
+```
 
 ## Documentation
 
