@@ -1,4 +1,4 @@
-package io.github.wawakaka.basicframeworkproject.presentation.toad
+package io.github.wawakaka.toad
 
 /** Marker interface for TOAD one-time events (side effects). */
 interface ViewEvent

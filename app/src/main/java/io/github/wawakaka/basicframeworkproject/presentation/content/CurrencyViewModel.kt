@@ -1,6 +1,6 @@
 package io.github.wawakaka.basicframeworkproject.presentation.content
 
-import io.github.wawakaka.basicframeworkproject.presentation.toad.ToadViewModel
+import io.github.wawakaka.toad.ToadViewModel
 
 class CurrencyViewModel(
     dependencies: CurrencyDependencies

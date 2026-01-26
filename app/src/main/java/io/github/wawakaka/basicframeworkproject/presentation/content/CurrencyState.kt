@@ -1,6 +1,6 @@
 package io.github.wawakaka.basicframeworkproject.presentation.content
 
-import io.github.wawakaka.basicframeworkproject.presentation.toad.ViewState
+import io.github.wawakaka.toad.ViewState
 import java.math.BigDecimal
 
 data class CurrencyState(

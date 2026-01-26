@@ -1,6 +1,6 @@
 package io.github.wawakaka.basicframeworkproject.presentation.content
 
-import io.github.wawakaka.basicframeworkproject.presentation.toad.ViewEvent
+import io.github.wawakaka.toad.ViewEvent
 
 sealed interface CurrencyEvent : ViewEvent {
     data class ShowToast(val message: String) : CurrencyEvent

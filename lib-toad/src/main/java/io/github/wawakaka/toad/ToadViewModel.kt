@@ -1,4 +1,4 @@
-package io.github.wawakaka.basicframeworkproject.presentation.toad
+package io.github.wawakaka.toad
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

@@ -1,7 +1,7 @@
 package io.github.wawakaka.basicframeworkproject.presentation.content
 
-import io.github.wawakaka.basicframeworkproject.presentation.toad.ActionScope
-import io.github.wawakaka.basicframeworkproject.presentation.toad.ViewAction
+import io.github.wawakaka.toad.ActionScope
+import io.github.wawakaka.toad.ViewAction
 
 sealed interface CurrencyAction : ViewAction<CurrencyDependencies, CurrencyState, CurrencyEvent> {
 

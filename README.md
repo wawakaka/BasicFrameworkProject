@@ -20,7 +20,7 @@ Modern Android application demonstrating **Clean Architecture** with **TOAD patt
 - **Build System:** Gradle 8.5, AGP 8.2.2, JDK 21
 - **Min SDK:** 26 (Android 8.0)
 - **Target SDK:** 34 (Android 14)
-- **Architecture Pattern:** TOAD (ViewModel + StateFlow + Channel)
+- **Architecture Pattern:** TOAD (core in `:lib-toad` module)
 - **UI Framework:** Jetpack Compose (BOM 2024.02.00)
 - **Testing:** JUnit, Mockito Kotlin, Compose UI Test (58 tests)
 
@@ -73,7 +73,7 @@ BASE_URL=http://api.exchangeratesapi.io/v1/
 - ✅ **M4:** Modern permission handling (ActivityResultContracts)
 - ✅ **M5:** Jetpack Compose UI migration
 - ✅ **M6:** TOAD architecture migration (MVP → ViewModel)
-- 📋 **M7:** Code cleanup (remove deprecated MVP code)
+- ✅ **M7:** Code cleanup (remove deprecated MVP code)
 
 ## License
 

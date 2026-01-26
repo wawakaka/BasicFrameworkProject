@@ -1,4 +1,4 @@
-package io.github.wawakaka.basicframeworkproject.presentation.toad
+package io.github.wawakaka.toad
 
 /**
  * A typed command that can mutate state and emit events.

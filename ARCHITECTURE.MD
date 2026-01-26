@@ -27,7 +27,8 @@ For a feature named `Currency`:
 
 ### Contracts (TOAD core)
 
-Located under `app/src/main/java/io/github/wawakaka/basicframeworkproject/presentation/toad/`:
+Located in module `:lib-toad` under package `io.github.wawakaka.toad` (
+`lib-toad/src/main/java/io/github/wawakaka/toad/`):
 
 - `ViewState` — marker interface for states
 - `ViewEvent` — marker interface for one-time events

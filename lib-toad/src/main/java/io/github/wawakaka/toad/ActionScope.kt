@@ -1,4 +1,4 @@
-package io.github.wawakaka.basicframeworkproject.presentation.toad
+package io.github.wawakaka.toad
 
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow

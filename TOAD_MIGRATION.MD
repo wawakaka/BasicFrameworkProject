@@ -42,7 +42,7 @@ Reference:
 
 Add generic contracts under:
 
-- `app/src/main/java/io/github/wawakaka/basicframeworkproject/presentation/toad/`
+- `lib-toad/src/main/java/io/github/wawakaka/toad/`
 
 Includes:
 

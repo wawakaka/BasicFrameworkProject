@@ -1,0 +1,18 @@
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+}
+
+apply from: "$rootDir/dep/build-lib.gradle"
+
+android {
+    namespace 'io.github.wawakaka.toad'
+}
+
+dependencies {
+    // Coroutines
+    implementation libs.kotlinx.coroutines.core
+
+    // AndroidX Lifecycle (ViewModel + viewModelScope)
+    implementation libs.androidx.lifecycle.viewmodel.ktx
+}
