@@ -46,7 +46,6 @@ BASE_URL=http://api.exchangeratesapi.io/v1/
 ## Documentation
 
 - [ARCHITECTURE.MD](ARCHITECTURE.MD) - Presentation + Clean Architecture guidelines (TOAD)
-- [TOAD_MIGRATION.MD](TOAD_MIGRATION.MD) - Medium-style TOAD migration plan (Currency feature)
 - [CLAUDE.md](CLAUDE.md) - Comprehensive project documentation (workflows, conventions, testing,
   migrations)
 
@@ -65,15 +64,6 @@ BASE_URL=http://api.exchangeratesapi.io/v1/
 # Install debug APK
 ./gradlew installDebug
 ```
-
-## Project Milestones
-
-- ✅ **M1:** Gradle 8.5 + Kotlin 2.0.21 + JDK 21
-- ✅ **M3:** Kotlin Coroutines migration (RxJava removed)
-- ✅ **M4:** Modern permission handling (ActivityResultContracts)
-- ✅ **M5:** Jetpack Compose UI migration
-- ✅ **M6:** TOAD architecture migration (MVP → ViewModel)
-- ✅ **M7:** Code cleanup (remove deprecated MVP code)
 
 ## License
 
