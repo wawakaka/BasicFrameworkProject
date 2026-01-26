@@ -29,17 +29,10 @@ import io.github.wawakaka.ui.theme.BasicFrameworkTheme
 import org.koin.androidx.compose.koinViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-/**
- * Main Activity with TOAD pattern (Milestone 6)
- * Uses MainViewModel for permission state management
- */
 class MainActivity : AppCompatActivity() {
 
-    // ========== TOAD Pattern (Milestone 6) ==========
-    // Inject MainViewModel from Koin
     private val mainViewModel: MainViewModel by viewModel()
 
-    // Register permission launcher (must be before onCreate returns)
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -59,10 +52,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Request camera permission from the system
-     * Called via effect from MainViewModel
-     */
     private fun requestPermission() {
         when {
             ContextCompat.checkSelfPermission(
@@ -88,7 +77,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showPermissionRationaleDialog() {
-        // TODO M7: Show Material 3 Compose AlertDialog explaining camera permission need
         // For now, proceed with permission request
         requestPermissionLauncher.launch(Manifest.permission.INTERNET)
     }
@@ -97,8 +85,6 @@ class MainActivity : AppCompatActivity() {
         val TAG: String? = MainActivity::class.java.canonicalName
     }
 }
-
-// ========== COMPOSABLE UI ==========
 
 /**
  * Main screen content with TOAD pattern

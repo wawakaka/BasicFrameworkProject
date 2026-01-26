@@ -19,7 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.github.wawakaka.basicframeworkproject.presentation.content.CurrencyUiState
+import io.github.wawakaka.basicframeworkproject.presentation.content.CurrencyState
 import io.github.wawakaka.basicframeworkproject.presentation.ui.components.CurrencyListItem
 import io.github.wawakaka.ui.components.AppTopBar
 import io.github.wawakaka.ui.components.ErrorMessage
@@ -28,7 +28,7 @@ import java.math.BigDecimal
 
 @Composable
 fun CurrencyScreenContent(
-    uiState: CurrencyUiState,
+    uiState: CurrencyState,
     onRefresh: () -> Unit,
     onLoadData: () -> Unit,
     onRetry: () -> Unit,
@@ -39,7 +39,7 @@ fun CurrencyScreenContent(
             AppTopBar(title = "Currency Rates")
         },
         floatingActionButton = {
-            if (uiState !is CurrencyUiState.Loading) {
+            if (!uiState.isLoading) {
                 ExtendedFloatingActionButton(
                     onClick = onRefresh,
                     icon = { Icon(Icons.Filled.Refresh, "Refresh") },
@@ -54,27 +54,27 @@ fun CurrencyScreenContent(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            when (uiState) {
-                is CurrencyUiState.Idle -> {
-                    EmptyState(onLoadData = onLoadData)
-                }
-
-                is CurrencyUiState.Loading -> {
+            when {
+                uiState.isLoading -> {
                     LoadingIndicator()
                 }
 
-                is CurrencyUiState.Success -> {
+                uiState.errorMessage != null -> {
+                    ErrorMessage(
+                        message = uiState.errorMessage,
+                        onRetry = onRetry
+                    )
+                }
+
+                uiState.rates.isNotEmpty() -> {
                     CurrencyListContent(
                         currencies = uiState.rates,
                         timestamp = uiState.timestamp
                     )
                 }
 
-                is CurrencyUiState.Error -> {
-                    ErrorMessage(
-                        message = uiState.message,
-                        onRetry = onRetry
-                    )
+                else -> {
+                    EmptyState(onLoadData = onLoadData)
                 }
             }
         }

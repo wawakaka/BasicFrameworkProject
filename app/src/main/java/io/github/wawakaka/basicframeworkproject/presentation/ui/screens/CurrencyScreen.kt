@@ -7,9 +7,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.wawakaka.basicframeworkproject.presentation.content.CurrencyUiEffect
-import io.github.wawakaka.basicframeworkproject.presentation.content.CurrencyUiEvent
-import io.github.wawakaka.basicframeworkproject.presentation.content.CurrencyUiState
+import io.github.wawakaka.basicframeworkproject.presentation.content.CurrencyAction
+import io.github.wawakaka.basicframeworkproject.presentation.content.CurrencyEvent
 import io.github.wawakaka.basicframeworkproject.presentation.content.CurrencyViewModel
 
 /**
@@ -28,24 +27,26 @@ fun CurrencyScreen(
 
     // Load initial data on first composition
     LaunchedEffect(Unit) {
-        viewModel.handleEvent(CurrencyUiEvent.OnLoadRates)
+        viewModel.runAction(CurrencyAction.LoadRates)
     }
 
-    // Handle one-time effects
+    // Handle one-time events
     LaunchedEffect(Unit) {
-        viewModel.effect.collect { effect ->
-            when (effect) {
-                is CurrencyUiEffect.ShowToast -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+        viewModel.events.collect { event ->
+            when (event) {
+                is CurrencyEvent.ShowToast -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
                 }
-                is CurrencyUiEffect.ShowError -> {
+
+                is CurrencyEvent.ShowError -> {
                     Toast.makeText(
                         context,
-                        "${effect.title}: ${effect.message}",
+                        "${event.title}: ${event.message}",
                         Toast.LENGTH_LONG
                     ).show()
                 }
-                is CurrencyUiEffect.NavigateBack -> {
+
+                is CurrencyEvent.NavigateBack -> {
                     // Handle navigation
                 }
             }
@@ -54,9 +55,9 @@ fun CurrencyScreen(
 
     CurrencyScreenContent(
         uiState = state,
-        onRefresh = { viewModel.handleEvent(CurrencyUiEvent.OnRefresh) },
-        onLoadData = { viewModel.handleEvent(CurrencyUiEvent.OnLoadRates) },
-        onRetry = { viewModel.handleEvent(CurrencyUiEvent.OnRetry) },
+        onRefresh = { viewModel.runAction(CurrencyAction.RefreshRates) },
+        onLoadData = { viewModel.runAction(CurrencyAction.LoadRates) },
+        onRetry = { viewModel.runAction(CurrencyAction.RetryLoad) },
         modifier = modifier
     )
 }

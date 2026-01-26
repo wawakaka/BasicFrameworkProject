@@ -45,12 +45,10 @@ BASE_URL=http://api.exchangeratesapi.io/v1/
 
 ## Documentation
 
-See [CLAUDE.md](CLAUDE.md) for comprehensive project documentation including:
-- Architecture details
-- Code conventions
-- Development workflows
-- Testing strategy
-- Migration guides
+- [ARCHITECTURE.MD](ARCHITECTURE.MD) - Presentation + Clean Architecture guidelines (TOAD)
+- [TOAD_MIGRATION.MD](TOAD_MIGRATION.MD) - Medium-style TOAD migration plan (Currency feature)
+- [CLAUDE.md](CLAUDE.md) - Comprehensive project documentation (workflows, conventions, testing,
+  migrations)
 
 ## Build & Run
 

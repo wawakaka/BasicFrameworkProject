@@ -1,15 +1,12 @@
 package io.github.wawakaka.basicframeworkproject.presentation
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.launch
 
 /**
  * TOAD Pattern - State/Event/Effect Models for Main (Permission) Screen
@@ -102,7 +99,7 @@ class MainViewModel : ViewModel() {
     /**
      * Private channel for sending one-time effects
      */
-    private val _effect = Channel<MainUiEffect>()
+    private val _effect = Channel<MainUiEffect>(Channel.BUFFERED)
 
     /**
      * Public flow of effects exposed to UI
@@ -129,15 +126,11 @@ class MainViewModel : ViewModel() {
      * @param granted Whether the permission was granted
      */
     fun onPermissionResult(granted: Boolean) {
-        viewModelScope.launch {
-            if (granted) {
-                Log.d(TAG, "Permission granted")
-                _state.value = MainUiState.PermissionGranted
-                _effect.send(MainUiEffect.NavigateToCurrency)
-            } else {
-                Log.d(TAG, "Permission denied")
-                _state.value = MainUiState.PermissionDenied
-            }
+        if (granted) {
+            _state.value = MainUiState.PermissionGranted
+            _effect.trySend(MainUiEffect.NavigateToCurrency)
+        } else {
+            _state.value = MainUiState.PermissionDenied
         }
     }
 
@@ -148,14 +141,8 @@ class MainViewModel : ViewModel() {
      * Sends effect to Activity to request permission
      */
     private fun checkPermission() {
-        viewModelScope.launch {
-            Log.d(TAG, "Checking permission...")
-            _state.value = MainUiState.CheckingPermission
-            _effect.send(MainUiEffect.RequestPermission)
-        }
+        _state.value = MainUiState.CheckingPermission
+        _effect.trySend(MainUiEffect.RequestPermission)
     }
 
-    companion object {
-        private const val TAG = "MainViewModel"
-    }
 }

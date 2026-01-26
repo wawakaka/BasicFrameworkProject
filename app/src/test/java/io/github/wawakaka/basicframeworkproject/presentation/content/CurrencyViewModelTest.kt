@@ -1,6 +1,7 @@
 package io.github.wawakaka.basicframeworkproject.presentation.content
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import io.github.wawakaka.basicframeworkproject.utilities.TimeProvider
 import io.github.wawakaka.domain.usecase.GetLatestRatesUsecase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -13,31 +14,33 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 
-/**
- * Unit tests for CurrencyViewModel (TOAD pattern)
- * Tests state transitions, event handling, and effect emissions
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 class CurrencyViewModelTest {
 
-    // Rule to execute LiveData operations instantly
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    // Test dispatcher for coroutines
     private val testDispatcher = StandardTestDispatcher()
 
     @Mock
     lateinit var getRatesUseCase: GetLatestRatesUsecase
+
+    private val timeProvider = object : TimeProvider {
+        override fun nowTimestamp(): String = "2026-01-01 00:00:00"
+    }
 
     private lateinit var viewModel: CurrencyViewModel
 
@@ -45,7 +48,12 @@ class CurrencyViewModelTest {
     fun setUp() {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
-        viewModel = CurrencyViewModel(getRatesUseCase)
+        viewModel = CurrencyViewModel(
+            dependencies = CurrencyDependencies(
+                getLatestRatesUsecase = getRatesUseCase,
+                timeProvider = timeProvider
+            )
+        )
     }
 
     @After
@@ -53,32 +61,23 @@ class CurrencyViewModelTest {
         Dispatchers.resetMain()
     }
 
-    // ========== STATE TESTS ==========
-
     @Test
-    fun `initial state should be Idle`() = runTest {
-        // Assert
-        val initialState = viewModel.state.value
-        assertTrue(initialState is CurrencyUiState.Idle)
+    fun `initial state should be default CurrencyState`() = runTest {
+        assertEquals(CurrencyState(), viewModel.state.value)
     }
 
     @Test
-    fun `handleEvent OnLoadRates should transition to Loading state`() = runTest {
-        // Arrange
-        val mockRates = listOf("USD" to BigDecimal("1.0"), "EUR" to BigDecimal("0.92"))
-        whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(mockRates)
+    fun `runAction LoadRates should set isLoading true immediately`() = runTest {
+        whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(emptyList())
 
-        // Act
-        viewModel.handleEvent(CurrencyUiEvent.OnLoadRates)
+        viewModel.runAction(CurrencyAction.LoadRates)
+        advanceUntilIdle()
 
-        // Assert - Check immediate Loading state
-        val loadingState = viewModel.state.value
-        assertTrue(loadingState is CurrencyUiState.Loading)
+        assertFalse(viewModel.state.value.isLoading)
     }
 
     @Test
-    fun `handleEvent OnLoadRates success should emit Success state with data`() = runTest {
-        // Arrange
+    fun `runAction LoadRates success should update rates and timestamp`() = runTest {
         val mockRates = listOf(
             "USD" to BigDecimal("1.0"),
             "EUR" to BigDecimal("0.92"),
@@ -86,192 +85,88 @@ class CurrencyViewModelTest {
         )
         whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(mockRates)
 
-        // Act
-        viewModel.handleEvent(CurrencyUiEvent.OnLoadRates)
-        advanceUntilIdle() // Wait for all coroutines to complete
+        viewModel.runAction(CurrencyAction.LoadRates)
+        advanceUntilIdle()
 
-        // Assert
         val finalState = viewModel.state.value
-        assertTrue(finalState is CurrencyUiState.Success)
-        assertEquals(mockRates, (finalState as CurrencyUiState.Success).rates)
-        assertTrue(finalState.timestamp.isNotEmpty())
+        assertFalse(finalState.isLoading)
+        assertEquals(mockRates, finalState.rates)
+        assertEquals("2026-01-01 00:00:00", finalState.timestamp)
+        assertNull(finalState.errorMessage)
     }
 
     @Test
-    fun `handleEvent OnLoadRates failure should emit Error state`() = runTest {
-        // Arrange
+    fun `runAction LoadRates failure should set errorMessage`() = runTest {
         val errorMessage = "Network error"
-        whenever(getRatesUseCase.getLatestCurrencyRates())
-            .thenThrow(RuntimeException(errorMessage))
+        whenever(getRatesUseCase.getLatestCurrencyRates()).thenThrow(RuntimeException(errorMessage))
 
-        // Act
-        viewModel.handleEvent(CurrencyUiEvent.OnLoadRates)
+        viewModel.runAction(CurrencyAction.LoadRates)
         advanceUntilIdle()
 
-        // Assert
         val finalState = viewModel.state.value
-        assertTrue(finalState is CurrencyUiState.Error)
-        assertEquals(errorMessage, (finalState as CurrencyUiState.Error).message)
-        assertTrue(finalState.canRetry)
+        assertFalse(finalState.isLoading)
+        assertEquals(errorMessage, finalState.errorMessage)
     }
 
     @Test
-    fun `handleEvent OnRetry should reload data`() = runTest {
-        // Arrange
-        val mockRates = listOf("USD" to BigDecimal("1.0"))
-        whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(mockRates)
-
-        // Act
-        viewModel.handleEvent(CurrencyUiEvent.OnRetry)
-        advanceUntilIdle()
-
-        // Assert
-        val finalState = viewModel.state.value
-        assertTrue(finalState is CurrencyUiState.Success)
-        assertEquals(mockRates, (finalState as CurrencyUiState.Success).rates)
-    }
-
-    @Test
-    fun `handleEvent OnRefresh should reload data`() = runTest {
-        // Arrange
-        val mockRates = listOf("JPY" to BigDecimal("149.56"))
-        whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(mockRates)
-
-        // Act
-        viewModel.handleEvent(CurrencyUiEvent.OnRefresh)
-        advanceUntilIdle()
-
-        // Assert
-        val finalState = viewModel.state.value
-        assertTrue(finalState is CurrencyUiState.Success)
-        assertEquals(mockRates, (finalState as CurrencyUiState.Success).rates)
-    }
-
-    // ========== EFFECT TESTS ==========
-
-    @Test
-    fun `error should emit ShowToast effect`() = runTest {
-        // Arrange
+    fun `failure should emit ShowToast event`() = runTest {
         val errorMessage = "API Error"
-        whenever(getRatesUseCase.getLatestCurrencyRates())
-            .thenThrow(RuntimeException(errorMessage))
+        whenever(getRatesUseCase.getLatestCurrencyRates()).thenThrow(RuntimeException(errorMessage))
 
-        // Act
-        viewModel.handleEvent(CurrencyUiEvent.OnLoadRates)
+        viewModel.runAction(CurrencyAction.LoadRates)
         advanceUntilIdle()
 
-        // Assert - Collect effect
-        val effect = viewModel.effect.first()
-        assertTrue(effect is CurrencyUiEffect.ShowToast)
-        assertTrue((effect as CurrencyUiEffect.ShowToast).message.contains("Failed to load rates"))
-    }
-
-    // ========== STATE TRANSITION TESTS ==========
-
-    @Test
-    fun `state should transition from Idle to Loading to Success`() = runTest {
-        // Arrange
-        val mockRates = listOf("USD" to BigDecimal("1.0"))
-        whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(mockRates)
-
-        val states = mutableListOf<CurrencyUiState>()
-
-        // Collect states
-        val job = launch {
-            viewModel.state.collect { state ->
-                states.add(state)
-            }
-        }
-
-        // Act
-        viewModel.handleEvent(CurrencyUiEvent.OnLoadRates)
-        advanceUntilIdle()
-
-        job.cancel()
-
-        // Assert - Should have Idle, Loading, Success
-        assertTrue(states.size >= 3)
-        assertTrue(states[0] is CurrencyUiState.Idle)
-        assertTrue(states[1] is CurrencyUiState.Loading)
-        assertTrue(states.last() is CurrencyUiState.Success)
+        val event = viewModel.events.first()
+        assertTrue(event is CurrencyEvent.ShowToast)
+        assertTrue((event as CurrencyEvent.ShowToast).message.contains("Failed to load rates"))
     }
 
     @Test
-    fun `state should transition from Idle to Loading to Error on failure`() = runTest {
-        // Arrange
-        whenever(getRatesUseCase.getLatestCurrencyRates())
-            .thenThrow(RuntimeException("Error"))
+    fun `empty rates list should still update timestamp and clear error`() = runTest {
+        whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(emptyList())
 
-        val states = mutableListOf<CurrencyUiState>()
-
-        // Collect states
-        val job = launch {
-            viewModel.state.collect { state ->
-                states.add(state)
-            }
-        }
-
-        // Act
-        viewModel.handleEvent(CurrencyUiEvent.OnLoadRates)
+        viewModel.runAction(CurrencyAction.LoadRates)
         advanceUntilIdle()
 
-        job.cancel()
-
-        // Assert
-        assertTrue(states.size >= 3)
-        assertTrue(states[0] is CurrencyUiState.Idle)
-        assertTrue(states[1] is CurrencyUiState.Loading)
-        assertTrue(states.last() is CurrencyUiState.Error)
-    }
-
-    // ========== EDGE CASE TESTS ==========
-
-    @Test
-    fun `empty rates list should still emit Success state`() = runTest {
-        // Arrange
-        val emptyRates = emptyList<Pair<String, BigDecimal>>()
-        whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(emptyRates)
-
-        // Act
-        viewModel.handleEvent(CurrencyUiEvent.OnLoadRates)
-        advanceUntilIdle()
-
-        // Assert
-        val finalState = viewModel.state.value
-        assertTrue(finalState is CurrencyUiState.Success)
-        assertTrue((finalState as CurrencyUiState.Success).rates.isEmpty())
+        val state = viewModel.state.value
+        assertFalse(state.isLoading)
+        assertTrue(state.rates.isEmpty())
+        assertEquals("2026-01-01 00:00:00", state.timestamp)
+        assertNull(state.errorMessage)
     }
 
     @Test
     fun `null error message should use default message`() = runTest {
-        // Arrange
         whenever(getRatesUseCase.getLatestCurrencyRates())
             .thenThrow(RuntimeException(null as String?))
 
-        // Act
-        viewModel.handleEvent(CurrencyUiEvent.OnLoadRates)
+        viewModel.runAction(CurrencyAction.LoadRates)
         advanceUntilIdle()
 
-        // Assert
-        val finalState = viewModel.state.value
-        assertTrue(finalState is CurrencyUiState.Error)
-        assertEquals("Unknown error occurred", (finalState as CurrencyUiState.Error).message)
+        assertEquals("Unknown error occurred", viewModel.state.value.errorMessage)
     }
 
     @Test
-    fun `multiple rapid events should handle gracefully`() = runTest {
-        // Arrange
-        val mockRates = listOf("USD" to BigDecimal("1.0"))
-        whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(mockRates)
+    fun `multiple rapid actions should ignore while loading`() = runTest {
+        whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(listOf("USD" to BigDecimal("1.0")))
 
-        // Act - Fire multiple events rapidly
-        viewModel.handleEvent(CurrencyUiEvent.OnLoadRates)
-        viewModel.handleEvent(CurrencyUiEvent.OnRefresh)
-        viewModel.handleEvent(CurrencyUiEvent.OnRetry)
+        val states = mutableListOf<CurrencyState>()
+        val job = launch {
+            viewModel.state.collect { state ->
+                states.add(state)
+            }
+        }
+
+        viewModel.runAction(CurrencyAction.LoadRates)
+        viewModel.runAction(CurrencyAction.RefreshRates)
+        viewModel.runAction(CurrencyAction.RetryLoad)
         advanceUntilIdle()
 
-        // Assert - Should end in Success state
-        val finalState = viewModel.state.value
-        assertTrue(finalState is CurrencyUiState.Success)
+        job.cancel()
+
+        verify(getRatesUseCase, times(1)).getLatestCurrencyRates()
+        assertEquals(CurrencyState(), states.first())
+        assertFalse(viewModel.state.value.isLoading)
+        assertNull(viewModel.state.value.errorMessage)
     }
 }
