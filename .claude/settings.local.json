@@ -18,7 +18,9 @@
       "Bash(flatpak list:*)",
       "Bash(./gradlew:*)",
       "Bash(curl:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(tree:*)",
+      "WebSearch"
     ]
   },
   "outputStyle": "default"

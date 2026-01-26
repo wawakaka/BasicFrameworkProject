@@ -23,8 +23,9 @@ repository.
 app (host shell)
 ├── feature-currency-exchange (presentation feature)
 │   └── domain (business logic, pure Kotlin)
-│       └── data (repositories)
-│           └── data-remote (Retrofit/OkHttp)
+│       └── data (repositories + caching logic)
+│           ├── data-remote (Retrofit/OkHttp)
+│           └── data-local (Room database)
 ├── lib-toad (TOAD base classes)
 └── ui (shared Compose components)
 ```
@@ -60,12 +61,13 @@ Split into Route (stateful) and Content (stateless):
 
 ## Technology Stack
 
-- **Language:** Kotlin 2.0.21
-- **Build:** Gradle 8.5, AGP 8.2.2, JDK 21
-- **UI:** Jetpack Compose with Material 3 (BOM 2024.02.00)
+- **Language:** Kotlin 2.3.0
+- **Build:** Gradle 9.1.0, AGP 9.0.0, JDK 21
+- **UI:** Jetpack Compose with Material 3 (BOM 2026.01.00)
 - **Async:** Kotlin Coroutines + StateFlow
-- **DI:** Koin 3.5.3 (use `viewModel { }` for ViewModels)
-- **Network:** Retrofit 2.9.0, OkHttp 4.12.0
+- **DI:** Koin 4.1.1 (use `viewModel { }` for ViewModels)
+- **Network:** Retrofit 3.0.0, OkHttp 5.3.2
+- **Local Database:** Room 2.7.1 (with KSP 2.3.3)
 - **Dependencies:** Gradle Version Catalog (`gradle/libs.versions.toml`)
 
 ## Adding a New Feature

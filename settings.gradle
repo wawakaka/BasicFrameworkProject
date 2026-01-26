@@ -16,6 +16,7 @@ dependencyResolutionManagement {
 rootProject.name = "BasicFrameworkProject"
 include ':app'
 include ':data-remote'
+include ':data-local'
 include ':data'
 include ':domain'
 include ':ui'

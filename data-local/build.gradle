@@ -1,0 +1,30 @@
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.ksp)
+}
+
+apply from: "$rootDir/dep/build-lib.gradle"
+
+android {
+    namespace = 'io.github.wawakaka.data.local'
+}
+
+dependencies {
+    // Room
+    implementation libs.room.runtime
+    implementation libs.room.ktx
+    ksp libs.room.compiler
+
+    // Kotlin Coroutines
+    implementation libs.kotlinx.coroutines.core
+
+    // Gson for TypeConverter
+    implementation libs.gson
+
+    // Testing
+    testImplementation libs.junit
+    androidTestImplementation libs.room.testing
+    androidTestImplementation libs.androidx.test.runner
+    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.kotlinx.coroutines.test
+}

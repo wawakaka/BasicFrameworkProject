@@ -1,7 +1,25 @@
 # Architecture
 
-This project follows Clean Architecture (`app` → `domain` → `data` → `data-remote`) with feature
-modules inside the presentation layer (e.g. `:feature-currency-exchange`).
+This project follows Clean Architecture (`app` → `domain` → `data` → `data-remote` / `data-local`)
+with feature modules inside the presentation layer (e.g. `:feature-currency-exchange`).
+
+## Data Layer
+
+The data layer consists of:
+
+- **`:data`** - Repository implementations with caching logic
+- **`:data-remote`** - Retrofit/OkHttp network layer
+- **`:data-local`** - Room database for local caching
+
+### Caching Strategy
+
+API responses are cached locally using Room database with a 24-hour validity period:
+
+- If cached data exists and is less than 24 hours old, return cached data
+- If cache is expired or missing, fetch from API and update cache
+- Cache key is based on the base currency (e.g., "EUR", "USD")
+
+The `CacheTimeProvider` interface enables testable time-based logic.
 
 For the **presentation layer**, we use **Medium-style TOAD** (Typed Object Action Dispatch),
 inspired by the article:
@@ -72,3 +90,27 @@ Notes:
 
 - Prefer **stable semantics** (e.g., `Modifier.testTag("loading_indicator")`) over asserting
   transient text like "Loading".
+
+## Data Layer Components
+
+### data-local module
+
+Located in `:data-local` under package `io.github.wawakaka.data.local`:
+
+| Component                   | Purpose                                      |
+|-----------------------------|----------------------------------------------|
+| `CachedCurrencyRatesEntity` | Room entity for cached API responses         |
+| `CurrencyRatesDao`          | DAO with insert, query, delete operations    |
+| `CurrencyRatesDatabase`     | Room database with singleton pattern         |
+| `RatesTypeConverter`        | Gson-based converter for Map<String, String> |
+| `LocalDataSource`           | Factory object (matches RestApi pattern)     |
+
+### data module
+
+The `:data` module contains:
+
+| Component                 | Purpose                                     |
+|---------------------------|---------------------------------------------|
+| `CurrencyRatesRepository` | Coordinates cache and API, 24h TTL logic    |
+| `CacheTimeProvider`       | Interface for testable time (+ System impl) |
+| `Repository`              | Factory object wiring API + DAO             |

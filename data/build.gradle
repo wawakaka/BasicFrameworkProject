@@ -23,6 +23,7 @@ android {
 
 dependencies {
     implementation project(':data-remote')
+    implementation project(':data-local')
 
     // Kotlin Coroutines
     implementation libs.kotlinx.coroutines.core
@@ -30,4 +31,9 @@ dependencies {
     // Networking
     implementation libs.retrofit
     implementation libs.gson
+
+    // Testing
+    testImplementation libs.junit
+    testImplementation libs.kotlinx.coroutines.test
+    testImplementation libs.mockito.kotlin
 }
