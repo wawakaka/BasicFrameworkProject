@@ -1,6 +1,6 @@
 # Architecture
 
-This project follows Clean Architecture (`app` → `domain` → `repository` → `restapi`) with feature
+This project follows Clean Architecture (`app` → `domain` → `data` → `data-remote`) with feature
 modules inside the presentation layer (e.g. `:feature-currency-exchange`).
 
 For the **presentation layer**, we use **Medium-style TOAD** (Typed Object Action Dispatch),

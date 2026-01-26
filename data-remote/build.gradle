@@ -1,14 +1,13 @@
 plugins {
-    id 'com.android.library'
-    id 'org.jetbrains.kotlin.android'
+    alias(libs.plugins.android.library)
 }
 
 apply from: "$rootDir/dep/build-lib.gradle"
 
 android {
-    namespace 'io.github.wawakaka.restapi'
+    namespace = 'io.github.wawakaka.data.remote'
     buildFeatures {
-        buildConfig true
+        buildConfig = true
     }
 }
 

@@ -10,13 +10,13 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://jitpack.io' }
+        maven { url = 'https://jitpack.io' }
     }
 }
 rootProject.name = "BasicFrameworkProject"
 include ':app'
-include ':restapi'
-include ':repository'
+include ':data-remote'
+include ':data'
 include ':domain'
 include ':ui'
 include ':lib-toad'

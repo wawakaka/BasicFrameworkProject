@@ -1,9 +1,9 @@
-package io.github.wawakaka.repository
+package io.github.wawakaka.data
 
 import android.app.Application
-import io.github.wawakaka.repository.currencyrates.CurrencyRatesApi
-import io.github.wawakaka.repository.currencyrates.CurrencyRatesRepository
-import io.github.wawakaka.restapi.RestApi
+import io.github.wawakaka.data.currencyrates.CurrencyRatesApi
+import io.github.wawakaka.data.currencyrates.CurrencyRatesRepository
+import io.github.wawakaka.data.remote.RestApi
 import retrofit2.Retrofit
 
 object Repository {

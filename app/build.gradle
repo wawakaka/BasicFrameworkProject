@@ -1,11 +1,10 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
 
 android {
-    namespace 'io.github.wawakaka.basicframeworkproject'
+    namespace = 'io.github.wawakaka.basicframeworkproject'
     compileSdk libs.versions.compileSdk.get().toInteger()
 
     defaultConfig {
@@ -14,7 +13,7 @@ android {
         targetSdk libs.versions.targetSdk.get().toInteger()
         versionCode 1
         versionName "1.0"
-        multiDexEnabled true
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -29,16 +28,16 @@ android {
             minifyEnabled false
             applicationIdSuffix = '.dev'
             versionNameSuffix = 'dev'
-            multiDexEnabled = true
+
         }
     }
 
     flavorDimensions = ["default"]
 
     buildFeatures {
-        compose true
-        viewBinding false
-        buildConfig true
+        compose = true
+        viewBinding = false
+        buildConfig = true
     }
 
     compileOptions {
@@ -46,9 +45,6 @@ android {
         targetCompatibility JavaVersion.VERSION_21
     }
 
-    kotlinOptions {
-        jvmTarget = '21'
-    }
 }
 
 dependencies {
@@ -64,7 +60,6 @@ dependencies {
     // AndroidX Core
     implementation libs.androidx.core.ktx
     implementation libs.androidx.appcompat
-    implementation libs.androidx.multidex
 
     // Material Design
     implementation libs.material

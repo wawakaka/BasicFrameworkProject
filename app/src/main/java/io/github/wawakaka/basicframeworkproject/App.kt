@@ -1,15 +1,15 @@
 package io.github.wawakaka.basicframeworkproject
 
+import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import androidx.multidex.MultiDexApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 
-class App : MultiDexApplication() {
+class App : Application() {
 
     override fun onCreate() {
         super.onCreate()

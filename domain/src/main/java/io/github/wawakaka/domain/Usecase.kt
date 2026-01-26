@@ -1,9 +1,9 @@
 package io.github.wawakaka.domain
 
 import android.app.Application
+import io.github.wawakaka.data.Repository
+import io.github.wawakaka.data.currencyrates.CurrencyRatesRepository
 import io.github.wawakaka.domain.usecase.GetLatestRatesUsecase
-import io.github.wawakaka.repository.Repository
-import io.github.wawakaka.repository.currencyrates.CurrencyRatesRepository
 
 object Usecase {
 

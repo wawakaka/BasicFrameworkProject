@@ -1,7 +1,7 @@
-package io.github.wawakaka.repository.currencyrates
+package io.github.wawakaka.data.currencyrates
 
-import io.github.wawakaka.repository.BuildConfig
-import io.github.wawakaka.repository.currencyrates.model.response.CurrencyRatesResponse
+import io.github.wawakaka.data.BuildConfig
+import io.github.wawakaka.data.currencyrates.model.response.CurrencyRatesResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
 

@@ -1,4 +1,4 @@
-package io.github.wawakaka.restapi
+package io.github.wawakaka.data.remote
 
 import android.app.Application
 import com.chuckerteam.chucker.api.ChuckerInterceptor

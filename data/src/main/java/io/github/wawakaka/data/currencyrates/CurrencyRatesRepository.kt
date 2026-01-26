@@ -1,6 +1,6 @@
-package io.github.wawakaka.repository.currencyrates
+package io.github.wawakaka.data.currencyrates
 
-import io.github.wawakaka.repository.currencyrates.model.response.CurrencyRatesResponse
+import io.github.wawakaka.data.currencyrates.model.response.CurrencyRatesResponse
 
 class CurrencyRatesRepository(private val currencyRatesApi: CurrencyRatesApi) {
 

@@ -1,4 +1,4 @@
-package io.github.wawakaka.repository.currencyrates.model.response
+package io.github.wawakaka.data.currencyrates.model.response
 
 import com.google.gson.annotations.SerializedName
 

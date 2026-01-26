@@ -1,12 +1,11 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
 }
 
 apply from: "$rootDir/dep/build-lib.gradle"
 
 android {
-    namespace 'io.github.wawakaka.toad'
+    namespace = 'io.github.wawakaka.toad'
 }
 
 dependencies {

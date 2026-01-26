@@ -1,16 +1,15 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
 }
 
 apply from: "$rootDir/dep/build-lib.gradle"
 
 android {
-    namespace 'io.github.wawakaka.domain'
+    namespace = 'io.github.wawakaka.domain'
 }
 
 dependencies {
-    implementation project(':repository')
+    implementation project(':data')
 
     // Kotlin Coroutines
     implementation libs.kotlinx.coroutines.core

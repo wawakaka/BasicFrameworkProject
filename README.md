@@ -46,7 +46,7 @@ BASE_URL=https://api.exchangeratesapi.io/v1/
 ```
 
 Note: The actual base URL and endpoint paths are controlled by DI / Retrofit configuration (see
-`:restapi` + `:repository`).
+`:data-remote` + `:data`).
 
 ## Documentation
 
