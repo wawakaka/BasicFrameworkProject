@@ -1,9 +1,10 @@
-package io.github.wawakaka.basicframeworkproject.presentation.content
+package io.github.wawakaka.feature.currencyexchange.presentation
 
 import io.github.wawakaka.toad.ActionScope
 import io.github.wawakaka.toad.ViewAction
 
-sealed interface CurrencyAction : ViewAction<CurrencyDependencies, CurrencyState, CurrencyEvent> {
+internal sealed interface CurrencyAction :
+    ViewAction<CurrencyDependencies, CurrencyState, CurrencyEvent> {
 
     data object LoadRates : CurrencyAction {
         override suspend fun execute(

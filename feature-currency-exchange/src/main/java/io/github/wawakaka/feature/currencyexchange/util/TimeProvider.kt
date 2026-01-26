@@ -1,14 +1,14 @@
-package io.github.wawakaka.basicframeworkproject.utilities
+package io.github.wawakaka.feature.currencyexchange.util
 
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-interface TimeProvider {
+internal interface TimeProvider {
     fun nowTimestamp(): String
 }
 
-class SystemTimeProvider(
+internal class SystemTimeProvider(
     private val locale: Locale = Locale.getDefault()
 ) : TimeProvider {
 

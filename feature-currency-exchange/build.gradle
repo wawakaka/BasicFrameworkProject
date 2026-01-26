@@ -1,53 +1,16 @@
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
 
+apply from: "$rootDir/dep/build-lib.gradle"
+
 android {
-    namespace 'io.github.wawakaka.basicframeworkproject'
-    compileSdk libs.versions.compileSdk.get().toInteger()
-
-    defaultConfig {
-        applicationId "io.github.wawakaka.basicframeworkproject"
-        minSdk libs.versions.minSdk.get().toInteger()
-        targetSdk libs.versions.targetSdk.get().toInteger()
-        versionCode 1
-        versionName "1.0"
-        multiDexEnabled true
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    buildTypes {
-        release {
-            debuggable false
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-        debug {
-            debuggable true
-            minifyEnabled false
-            applicationIdSuffix = '.dev'
-            versionNameSuffix = 'dev'
-            multiDexEnabled = true
-        }
-    }
-
-    flavorDimensions = ["default"]
+    namespace 'io.github.wawakaka.feature.currencyexchange'
 
     buildFeatures {
         compose true
-        viewBinding false
-        buildConfig true
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
-    }
-
-    kotlinOptions {
-        jvmTarget = '21'
     }
 }
 
@@ -55,8 +18,6 @@ dependencies {
     implementation project(':domain')
     implementation project(':ui')
     implementation project(':lib-toad')
-    implementation project(':feature-currency-exchange')
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     // Kotlin
     implementation libs.kotlin.stdlib
@@ -64,7 +25,6 @@ dependencies {
     // AndroidX Core
     implementation libs.androidx.core.ktx
     implementation libs.androidx.appcompat
-    implementation libs.androidx.multidex
 
     // Material Design
     implementation libs.material
@@ -74,9 +34,6 @@ dependencies {
     implementation libs.kotlinx.coroutines.android
     implementation libs.androidx.lifecycle.viewmodel.ktx
     implementation libs.androidx.lifecycle.runtime.ktx
-
-    // AndroidX Activity (for ActivityResultContracts)
-    implementation libs.androidx.activity.ktx
 
     // Jetpack Compose BOM
     implementation platform(libs.compose.bom)
@@ -92,18 +49,8 @@ dependencies {
     implementation libs.compose.material3
     implementation libs.compose.material.icons.extended
 
-    // Compose Activity Integration
-    implementation libs.androidx.activity.compose
-
-    // Compose Navigation
-    implementation libs.androidx.navigation.compose
-
     // Compose Lifecycle
-    implementation libs.androidx.lifecycle.viewmodel.compose
     implementation libs.androidx.lifecycle.runtime.compose
-
-    // Debug tooling
-    debugImplementation libs.compose.ui.tooling
 
     // Dependency Injection
     implementation libs.koin.android

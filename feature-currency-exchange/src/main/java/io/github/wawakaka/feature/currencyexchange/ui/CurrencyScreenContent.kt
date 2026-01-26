@@ -1,4 +1,4 @@
-package io.github.wawakaka.basicframeworkproject.presentation.ui.screens
+package io.github.wawakaka.feature.currencyexchange.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,15 +19,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.github.wawakaka.basicframeworkproject.presentation.content.CurrencyState
-import io.github.wawakaka.basicframeworkproject.presentation.ui.components.CurrencyListItem
+import io.github.wawakaka.feature.currencyexchange.presentation.CurrencyState
+import io.github.wawakaka.feature.currencyexchange.ui.components.CurrencyListItem
 import io.github.wawakaka.ui.components.AppTopBar
 import io.github.wawakaka.ui.components.ErrorMessage
 import io.github.wawakaka.ui.components.LoadingIndicator
 import java.math.BigDecimal
 
 @Composable
-fun CurrencyScreenContent(
+internal fun CurrencyScreenContent(
     uiState: CurrencyState,
     onRefresh: () -> Unit,
     onLoadData: () -> Unit,
@@ -82,7 +82,7 @@ fun CurrencyScreenContent(
 }
 
 @Composable
-fun CurrencyListContent(
+private fun CurrencyListContent(
     currencies: List<Pair<String, BigDecimal>>,
     timestamp: String = "",
     modifier: Modifier = Modifier
@@ -108,7 +108,7 @@ fun CurrencyListContent(
 }
 
 @Composable
-fun EmptyState(
+private fun EmptyState(
     onLoadData: () -> Unit,
     modifier: Modifier = Modifier
 ) {

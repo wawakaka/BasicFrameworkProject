@@ -1,4 +1,4 @@
-package io.github.wawakaka.basicframeworkproject.presentation.ui.components
+package io.github.wawakaka.feature.currencyexchange.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -18,7 +18,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 @Composable
-fun CurrencyListItem(
+internal fun CurrencyListItem(
     currencyCode: String,
     rate: BigDecimal,
     modifier: Modifier = Modifier

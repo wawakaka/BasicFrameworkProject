@@ -1,8 +1,13 @@
-package io.github.wawakaka.basicframeworkproject.presentation.content
+package io.github.wawakaka.feature.currencyexchange
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import io.github.wawakaka.basicframeworkproject.utilities.TimeProvider
 import io.github.wawakaka.domain.usecase.GetLatestRatesUsecase
+import io.github.wawakaka.feature.currencyexchange.presentation.CurrencyAction
+import io.github.wawakaka.feature.currencyexchange.presentation.CurrencyDependencies
+import io.github.wawakaka.feature.currencyexchange.presentation.CurrencyEvent
+import io.github.wawakaka.feature.currencyexchange.presentation.CurrencyState
+import io.github.wawakaka.feature.currencyexchange.presentation.CurrencyViewModel
+import io.github.wawakaka.feature.currencyexchange.util.TimeProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first

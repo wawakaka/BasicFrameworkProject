@@ -1,12 +1,10 @@
 package io.github.wawakaka.basicframeworkproject
 
 import io.github.wawakaka.basicframeworkproject.domain.domainModules
-import io.github.wawakaka.basicframeworkproject.presentation.content.currencyModule
-import io.github.wawakaka.basicframeworkproject.presentation.mainModule
+import io.github.wawakaka.feature.currencyexchange.di.featureCurrencyExchangeModule
 
 val applicationModules =
     listOf(
-        mainModule,
         domainModules,
-        currencyModule
+        featureCurrencyExchangeModule
     )

@@ -1,8 +1,8 @@
-package io.github.wawakaka.basicframeworkproject.presentation.content
+package io.github.wawakaka.feature.currencyexchange.presentation
 
 import io.github.wawakaka.toad.ToadViewModel
 
-class CurrencyViewModel(
+internal class CurrencyViewModel(
     dependencies: CurrencyDependencies
 ) : ToadViewModel<CurrencyState, CurrencyEvent, CurrencyDependencies>(
     initialState = CurrencyState(),

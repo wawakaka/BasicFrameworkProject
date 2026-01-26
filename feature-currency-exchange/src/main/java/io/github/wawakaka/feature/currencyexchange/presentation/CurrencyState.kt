@@ -1,9 +1,9 @@
-package io.github.wawakaka.basicframeworkproject.presentation.content
+package io.github.wawakaka.feature.currencyexchange.presentation
 
 import io.github.wawakaka.toad.ViewState
 import java.math.BigDecimal
 
-data class CurrencyState(
+internal data class CurrencyState(
     val isLoading: Boolean = false,
     val rates: List<Pair<String, BigDecimal>> = emptyList(),
     val timestamp: String = "",

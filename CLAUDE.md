@@ -1,6 +1,6 @@
 # CLAUDE.md - AI Assistant Guide for BasicFrameworkProject
 
-**Last Updated:** 2026-01-24 (Milestone 6 Complete)
+**Last Updated:** 2026-01-26 (Feature module refactor)
 **Project Version:** 1.0
 **Target SDK:** Android 14 (API 34)
 
@@ -41,7 +41,7 @@
 ### Project Purpose
 This is a framework/template project demonstrating professional Android development practices with:
 - Clean Architecture separation
-- TOAD architecture pattern (State/Event/Effect)
+- TOAD architecture pattern (State/Event + typed Actions)
 - Jetpack Compose UI
 - Reactive programming with Kotlin Coroutines & StateFlow
 - Dependency injection with Koin
@@ -57,10 +57,11 @@ The project follows a strict layered architecture:
 
 ```
 ┌─────────────────────────────────────────────────┐
-│  Presentation Layer (app module)                │
-│  - Jetpack Compose UI (Activities, Fragments)   │
+│  Presentation Layer (app + feature modules)     │
+│  - :app host shell                              │
+│  - Feature modules (e.g. :feature-currency-exchange) │
+│  - Jetpack Compose UI                           │
 │  - ViewModels (TOAD Pattern)                    │
-│  - State/Event/Effect Models                    │
 │  - Koin DI Configuration                        │
 └─────────────────┬───────────────────────────────┘
                   │
@@ -85,105 +86,94 @@ The project follows a strict layered architecture:
 └─────────────────────────────────────────────────┘
 ```
 
-### TOAD Pattern Implementation (Current - Milestone 6)
+### TOAD Pattern Implementation (Current)
 
-Each feature implements the TOAD pattern with State/Event/Effect modeling:
+The project uses **Medium-style TOAD (Typed Object Action Dispatch)**.
 
-**State Model (`*State.kt`):**
+Each feature follows this shape:
+
+- **State**: a single immutable `data class` implementing `ViewState`.
+- **Event**: a sealed type implementing `ViewEvent` for one-time outputs (toast/navigation).
+- **Action**: typed command objects implementing `ViewAction<Deps, State, Event>`.
+- **ViewModel**: a `ToadViewModel<State, Event>` that only wires dependencies and runs actions.
+
+**Example (Currency feature)**
+
+**State (`CurrencyState.kt`):**
+
 ```kotlin
-sealed class FeatureUiState {
-    object Idle : FeatureUiState()
-    object Loading : FeatureUiState()
-    data class Success(val data: List<T>) : FeatureUiState()
-    data class Error(val message: String) : FeatureUiState()
-}
+internal data class CurrencyState(
+    val isLoading: Boolean = false,
+    val rates: List<Pair<String, BigDecimal>> = emptyList(),
+    val timestamp: String = "",
+    val errorMessage: String? = null
+) : ViewState
+```
 
-sealed class FeatureUiEvent {
-    object OnLoadData : FeatureUiEvent()
-    object OnRetry : FeatureUiEvent()
-    object OnRefresh : FeatureUiEvent()
-}
-
-sealed class FeatureUiEffect {
-    data class ShowToast(val message: String) : FeatureUiEffect()
-    data class NavigateBack : FeatureUiEffect()
+**Events (`CurrencyEvent.kt`):**
+```kotlin
+internal sealed interface CurrencyEvent : ViewEvent {
+    data class ShowToast(val message: String) : CurrencyEvent
 }
 ```
 
-**ViewModel Implementation:**
+**Actions (`CurrencyAction.kt`):**
 ```kotlin
-class FeatureViewModel(
-    private val useCase: FeatureUseCase
-) : ViewModel() {
-    private val _state = MutableStateFlow<FeatureUiState>(FeatureUiState.Idle)
-    val state: StateFlow<FeatureUiState> = _state.asStateFlow()
+internal sealed interface CurrencyAction :
+    ViewAction<CurrencyDependencies, CurrencyState, CurrencyEvent> {
 
-    private val _effect = Channel<FeatureUiEffect>()
-    val effect: Flow<FeatureUiEffect> = _effect.receiveAsFlow()
+    data object LoadRates : CurrencyAction
+    data object RefreshRates : CurrencyAction
+    data object RetryLoad : CurrencyAction
+}
+```
 
-    fun handleEvent(event: FeatureUiEvent) {
-        when (event) {
-            is FeatureUiEvent.OnLoadData -> loadData()
-            is FeatureUiEvent.OnRetry -> loadData()
-            is FeatureUiEvent.OnRefresh -> loadData()
+Actions encapsulate the business flow and update state through the provided `ActionScope`:
+
+```kotlin
+override suspend fun execute(
+    dependencies: CurrencyDependencies,
+    scope: ActionScope<CurrencyState, CurrencyEvent>
+) {
+    if (scope.currentState.isLoading) return
+
+    scope.setState { copy(isLoading = true, errorMessage = null) }
+
+    try {
+        val rates = dependencies.getLatestRatesUsecase.getLatestCurrencyRates()
+        scope.setState {
+            copy(
+                isLoading = false,
+                rates = rates,
+                timestamp = dependencies.timeProvider.nowTimestamp(),
+                errorMessage = null
+            )
         }
-    }
-
-    private fun loadData() {
-        viewModelScope.launch {
-            _state.value = FeatureUiState.Loading
-            try {
-                val data = useCase.execute()
-                _state.value = FeatureUiState.Success(data)
-            } catch (e: Exception) {
-                _state.value = FeatureUiState.Error(e.message ?: "Unknown error")
-                _effect.send(FeatureUiEffect.ShowToast("Failed to load data"))
-            }
-        }
+    } catch (t: Throwable) {
+        val message = t.message ?: "Unknown error occurred"
+        scope.setState { copy(isLoading = false, errorMessage = message) }
+        scope.sendEvent(CurrencyEvent.ShowToast("Failed to load rates: $message"))
     }
 }
 ```
 
-**Compose UI Integration:**
-```kotlin
-@Composable
-fun FeatureScreen(viewModel: FeatureViewModel) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+**Compose integration (route/content split):**
 
-    LaunchedEffect(Unit) {
-        viewModel.effect.collect { effect ->
-            when (effect) {
-                is FeatureUiEffect.ShowToast -> { /* show toast */ }
-                is FeatureUiEffect.NavigateBack -> { /* navigate */ }
-            }
-        }
-    }
-
-    when (state) {
-        is FeatureUiState.Loading -> LoadingIndicator()
-        is FeatureUiState.Success -> SuccessContent((state as FeatureUiState.Success).data)
-        is FeatureUiState.Error -> ErrorMessage((state as FeatureUiState.Error).message)
-        is FeatureUiState.Idle -> EmptyState()
-    }
-}
-```
+- A `*Route` composable collects state/events from the ViewModel and passes callbacks to content.
+- `*ScreenContent` stays stateless and renders purely from `State`.
 
 **Key Principles:**
-- **UiState:** Immutable data class representing screen state
-- **UiEvent:** User interactions or screen events
-- **UiEffect:** One-time side effects (toasts, navigation)
-- **ViewModel:** State holder with viewModelScope for lifecycle management
-- **StateFlow:** Reactive state observation in Compose
-- **Channel:** One-time effect delivery
-- **Unidirectional Data Flow:** Events → ViewModel → State → UI
+
+- **Unidirectional flow**: UI → dispatch `Action` → state reducer (`setState`) → UI
+- **One-time outputs** go through events (`sendEvent`) rather than state flags
+- **ViewModels stay boring**: no business logic, just wiring + `runAction(...)`
 
 **Benefits:**
-- ✅ Survives configuration changes automatically
-- ✅ Type-safe state modeling with sealed classes
-- ✅ Better separation of concerns
-- ✅ Easier to test (no View mocking needed)
-- ✅ Perfect integration with Jetpack Compose
-- ✅ Built-in lifecycle management
+
+- ✅ Predictable behavior (actions are the only mutation path)
+- ✅ Testable business flow (action tests are fast)
+- ✅ Compose-friendly state rendering
+- ✅ Easy to add features without ViewModel bloat
 
 ### Dependency Injection (Koin)
 
@@ -240,9 +230,9 @@ All async operations use Kotlin Coroutines with ViewModel:
 ```
 User Action (Compose UI)
     ↓
-UiEvent dispatched to ViewModel.handleEvent()
+UI dispatches Action (`runAction`)
     ↓
-viewModelScope.launch { ... }
+ViewModel runs Action in `viewModelScope`
     ↓
 UseCase (suspend function)
     ↓
@@ -267,7 +257,7 @@ Compose UI recomposes automatically
 
 ## Module Structure
 
-### 1. `app` Module (Presentation Layer)
+### 1. `app` Module (Host Shell)
 
 **Location:** `/app/src/main/java/io/github/wawakaka/basicframeworkproject/`
 
@@ -278,31 +268,36 @@ app/
 ├── Modules.kt                      # Combined Koin modules
 ├── base/                           # Base classes
 │   └── BaseActivity.kt             # Base activity
-├── presentation/                   # Main screen (permission check)
-│   ├── MainActivity.kt             # Main activity with Compose
-│   ├── MainViewModel.kt            # TOAD ViewModel
-│   ├── MainModule.kt               # Koin module
-│   └── content/                    # Currency feature
-│       ├── CurrencyFragment.kt     # Compose UI host
-│       ├── CurrencyViewModel.kt    # TOAD ViewModel
-│       ├── CurrencyState.kt        # State/Event/Effect models
-│       └── CurrencyModule.kt       # Koin module
-├── presentation/ui/                # Compose UI components
-│   ├── theme/                      # Material 3 theme
-│   │   ├── Color.kt
-│   │   ├── Type.kt
-│   │   └── Theme.kt
-│   ├── components/                 # Reusable components
-│   │   ├── AppTopBar.kt
-│   │   ├── LoadingIndicator.kt
-│   │   ├── ErrorMessage.kt
-│   │   └── CurrencyListItem.kt
-│   └── screens/                    # Screen composables
-│       └── CurrencyScreen.kt       # Currency screen UI
-├── domain/
-│   └── domainModules.kt            # Domain layer DI setup
-└── utilities/
-    └── ViewExtensions.kt           # UI helper extensions
+├── presentation/
+│   └── MainActivity.kt             # Main host activity (renders feature route)
+└── domain/
+    └── domainModules.kt            # Domain layer DI setup
+```
+
+### 2. `feature-currency-exchange` Module (Presentation Feature)
+
+**Location:**
+`/feature-currency-exchange/src/main/java/io/github/wawakaka/feature/currencyexchange/`
+
+**Key Directories:**
+
+```
+feature-currency-exchange/
+├── di/
+│   └── CurrencyExchangeModule.kt   # Koin module export: featureCurrencyExchangeModule
+├── presentation/
+│   ├── CurrencyAction.kt
+│   ├── CurrencyDependencies.kt
+│   ├── CurrencyEvent.kt
+│   ├── CurrencyState.kt
+│   └── CurrencyViewModel.kt
+├── ui/
+│   ├── CurrencyExchangeRoute.kt    # Public entrypoint: CurrencyExchangeRoute()
+│   └── CurrencyScreenContent.kt
+├── ui/components/
+│   └── CurrencyListItem.kt
+└── util/
+    └── TimeProvider.kt
 ```
 
 **Dependencies:**
@@ -328,7 +323,7 @@ domain/
 **Key Characteristics:**
 - **Pure Kotlin:** No Android framework dependencies
 - **UseCase Pattern:** Each use case = one business operation
-- **RxJava Transformations:** Threading and data mapping
+- **Coroutines:** Suspend-based business logic (no RxJava)
 - **Dependencies:** `repository` module for data access
 
 **Example UseCase:**
@@ -385,7 +380,8 @@ restapi/
 ```
 
 **Configuration:**
-- **Base URL:** `https://api.ratesapi.io/api/`
+
+- **Base URL:** Configurable via `BASE_URL` in `local.properties` (wired in DI / Retrofit setup)
 - **Timeouts:** 60s connect/read/write
 - **Interceptors:** Headers, logging, Chuck (network inspection)
 - **Converters:** Gson with identity field naming
@@ -414,7 +410,8 @@ restapi/
 - **AndroidX Lifecycle ViewModel KTX:** `2.7.0` - ViewModel coroutine support
 
 #### Android Permissions & Activities
-- **AndroidX Activity KTX:** `1.8.1` - ActivityResultContracts for permission handling
+
+- **AndroidX Activity KTX:** `1.8.1` - Activity/Compose integration utilities
 
 #### Networking
 - **Retrofit:** `2.9.0` - REST API client
@@ -564,24 +561,24 @@ io.github.wawakaka.<module>.<layer>.<feature>
 
 ### Naming Conventions
 
-| Type | Pattern | Example |
-|------|---------|---------|
-| **ViewModel** | `*ViewModel` | `CurrencyViewModel` |
-| **UiState** | `*UiState` | `CurrencyUiState` |
-| **UiEvent** | `*UiEvent` | `CurrencyUiEvent` |
-| **UiEffect** | `*UiEffect` | `CurrencyUiEffect` |
-| **State File** | `*State.kt` | `CurrencyState.kt` |
-| **Composable Screen** | `*Screen` | `CurrencyScreen` |
-| **Composable Component** | descriptive name | `AppTopBar`, `LoadingIndicator` |
-| **Activity** | `*Activity` | `MainActivity` |
-| **Fragment** | `*Fragment` | `CurrencyFragment` |
-| **API Interface** | `*Api` | `CurrencyRatesApi` |
-| **Repository** | `*Repository` | `CurrencyRatesRepository` |
-| **UseCase** | `*Usecase` | `GetLatestRatesUsecase` |
-| **Response Model** | `*Response` | `CurrencyRatesResponse` |
-| **Koin Module** | `*Module` | `CurrencyModule` |
-| **Contract** (deprecated) | `*Contract` | `CurrencyContract` |
-| **Presenter** (deprecated) | `*Presenter` | `CurrencyPresenter` |
+| Type                     | Pattern          | Example                                             |
+|--------------------------|------------------|-----------------------------------------------------|
+| **ViewModel**            | `*ViewModel`     | `CurrencyViewModel`                                 |
+| **State**                | `*State`         | `CurrencyState`                                     |
+| **Event**                | `*Event`         | `CurrencyEvent`                                     |
+| **Action**               | `*Action`        | `CurrencyAction`                                    |
+| **Dependencies**         | `*Dependencies`  | `CurrencyDependencies`                              |
+| **State File**           | `*State.kt`      | `CurrencyState.kt`                                  |
+| **Composable Route**     | `*Route`         | `CurrencyExchangeRoute`                             |
+| **Composable Content**   | `*ScreenContent` | `CurrencyScreenContent`                             |
+| **Composable Component** | descriptive name | `AppTopBar`, `LoadingIndicator`, `CurrencyListItem` |
+| **Activity**             | `*Activity`      | `MainActivity`                                      |
+| **Fragment**             | `*Fragment`      | (not used; Compose-first)                           |
+| **API Interface**        | `*Api`           | `CurrencyRatesApi`                                  |
+| **Repository**           | `*Repository`    | `CurrencyRatesRepository`                           |
+| **UseCase**              | `*Usecase`       | `GetLatestRatesUsecase`                             |
+| **Response Model**       | `*Response`      | `CurrencyRatesResponse`                             |
+| **Koin Module**          | `*Module`        | `CurrencyExchangeModule`                            |
 
 ### Kotlin Best Practices
 
@@ -635,68 +632,56 @@ class MyPresenter : BasePresenter<MyContract.View>() {
 
 ### Kotlin Coroutines Patterns (TOAD)
 
-#### ViewModel with viewModelScope
-ViewModels use `viewModelScope` for lifecycle-aware coroutines:
+#### ViewModel (TOAD) with `viewModelScope`
+
+`ToadViewModel` uses `viewModelScope` internally to run actions.
+
+- UI triggers work by dispatching a `*Action`.
+- Actions are the only place where state changes happen.
 
 ```kotlin
-class MyViewModel(
-    private val usecase: MyUsecase
-) : ViewModel() {
+internal class CurrencyViewModel(
+    dependencies: CurrencyDependencies
+) : ToadViewModel<CurrencyState, CurrencyEvent>(
+    initialState = CurrencyState(),
+    dependencies = dependencies
+)
 
-    private val _state = MutableStateFlow<MyUiState>(MyUiState.Idle)
-    val state: StateFlow<MyUiState> = _state.asStateFlow()
-
-    private val _effect = Channel<MyUiEffect>()
-    val effect: Flow<MyUiEffect> = _effect.receiveAsFlow()
-
-    fun handleEvent(event: MyUiEvent) {
-        when (event) {
-            is MyUiEvent.OnLoadData -> loadData()
-        }
-    }
-
-    private fun loadData() {
-        viewModelScope.launch {
-            _state.value = MyUiState.Loading
-            try {
-                val data = usecase.getData()
-                _state.value = MyUiState.Success(data)
-            } catch (e: Exception) {
-                _state.value = MyUiState.Error(e.message ?: "Unknown error")
-                _effect.send(MyUiEffect.ShowToast("Failed to load data"))
-            }
-        }
-    }
-    // viewModelScope automatically cancels when ViewModel is cleared
-}
+// UI calls:
+// viewModel.runAction(CurrencyAction.LoadRates)
 ```
 
-#### Compose UI with State Collection
-Use `collectAsStateWithLifecycle()` for lifecycle-aware state observation:
+#### Compose UI with State + Event collection
+
+Use `collectAsStateWithLifecycle()` for lifecycle-aware state observation, and collect events in a
+`LaunchedEffect`.
 
 ```kotlin
 @Composable
-fun MyScreen(viewModel: MyViewModel = viewModel()) {
+fun CurrencyExchangeRoute(
+    viewModel: CurrencyViewModel = org.koin.androidx.compose.koinViewModel()
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        viewModel.handleEvent(MyUiEvent.OnLoadData)
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.effect.collect { effect ->
-            when (effect) {
-                is MyUiEffect.ShowToast -> { /* show toast */ }
+        viewModel.events.collect { event ->
+            when (event) {
+                is CurrencyEvent.ShowToast -> Toast.makeText(
+                    context,
+                    event.message,
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
 
-    when (state) {
-        is MyUiState.Loading -> LoadingIndicator()
-        is MyUiState.Success -> SuccessContent((state as MyUiState.Success).data)
-        is MyUiState.Error -> ErrorMessage((state as MyUiState.Error).message)
-        is MyUiState.Idle -> EmptyState()
-    }
+    CurrencyScreenContent(
+        uiState = state,
+        onLoadData = { viewModel.runAction(CurrencyAction.LoadRates) },
+        onRefresh = { viewModel.runAction(CurrencyAction.RefreshRates) },
+        onRetry = { viewModel.runAction(CurrencyAction.RetryLoad) }
+    )
 }
 ```
 
@@ -781,41 +766,46 @@ fun MyScreen(viewModel: MyViewModel) {
 
 ### Error Handling (TOAD Pattern)
 
-**In ViewModel:**
+In Medium-style TOAD, errors are typically:
+
+- Stored in state (e.g., `errorMessage`) for UI rendering.
+- Emitted as a one-time event (e.g., toast) via `sendEvent(...)`.
+
+**In Action:**
 ```kotlin
-private fun loadData() {
-    viewModelScope.launch {
-        _state.value = MyUiState.Loading
-        try {
-            val data = usecase.getData()
-            _state.value = MyUiState.Success(data)
-        } catch (e: Exception) {
-            _state.value = MyUiState.Error(e.message ?: "Unknown error")
-            _effect.send(MyUiEffect.ShowToast("Failed to load data"))
+override suspend fun execute(
+    dependencies: CurrencyDependencies,
+    scope: ActionScope<CurrencyState, CurrencyEvent>
+) {
+    if (scope.currentState.isLoading) return
+
+    scope.setState { copy(isLoading = true, errorMessage = null) }
+
+    try {
+        val rates = dependencies.getLatestRatesUsecase.getLatestCurrencyRates()
+        scope.setState {
+            copy(
+                isLoading = false,
+                rates = rates,
+                timestamp = dependencies.timeProvider.nowTimestamp(),
+                errorMessage = null
+            )
         }
+    } catch (t: Throwable) {
+        val message = t.message ?: "Unknown error occurred"
+        scope.setState { copy(isLoading = false, errorMessage = message) }
+        scope.sendEvent(CurrencyEvent.ShowToast("Failed to load rates: $message"))
     }
 }
 ```
 
-**In Compose UI:**
+**In Compose (`Route`):**
 ```kotlin
-when (state) {
-    is MyUiState.Error -> {
-        ErrorMessage(
-            message = (state as MyUiState.Error).message,
-            onRetry = { viewModel.handleEvent(MyUiEvent.OnRetry) }
-        )
-    }
-    // ... other states
-}
-
-// Handle effects
 LaunchedEffect(Unit) {
-    viewModel.effect.collect { effect ->
-        when (effect) {
-            is MyUiEffect.ShowToast -> {
-                Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-            }
+    viewModel.events.collect { event ->
+        when (event) {
+            is CurrencyEvent.ShowToast -> Toast.makeText(context, event.message, Toast.LENGTH_SHORT)
+                .show()
         }
     }
 }
@@ -827,11 +817,11 @@ LaunchedEffect(Unit) {
 
 ### Application Entry Points
 
-| File | Location | Purpose |
-|------|----------|---------|
-| `App.kt` | `app/src/main/java/.../App.kt` | Application class, Koin initialization |
-| `MainActivity.kt` | `app/src/main/java/.../presentation/MainActivity.kt` | Entry activity, permission checks |
-| `AndroidManifest.xml` | `app/src/main/AndroidManifest.xml` | App configuration, permissions |
+| File                  | Location                                             | Purpose                                |
+|-----------------------|------------------------------------------------------|----------------------------------------|
+| `App.kt`              | `app/src/main/java/.../App.kt`                       | Application class, Koin initialization |
+| `MainActivity.kt`     | `app/src/main/java/.../presentation/MainActivity.kt` | Entry activity (hosts feature route)   |
+| `AndroidManifest.xml` | `app/src/main/AndroidManifest.xml`                   | App configuration, permissions         |
 
 ### Configuration Files
 
@@ -853,12 +843,11 @@ LaunchedEffect(Unit) {
 
 ### Koin Modules
 
-| File | Purpose | Contains |
-|------|---------|----------|
-| `Modules.kt` | Application module composition | All modules combined |
-| `MainModule.kt` | Main screen dependencies | MainViewModel |
-| `CurrencyModule.kt` | Currency feature dependencies | CurrencyViewModel |
-| `domainModules.kt` | Domain layer dependencies | UseCases, Repositories, APIs |
+| File                        | Purpose                        | Contains                     |
+|-----------------------------|--------------------------------|------------------------------|
+| `Modules.kt`                | Application module composition | All modules combined         |
+| `CurrencyExchangeModule.kt` | Currency feature dependencies  | CurrencyViewModel            |
+| `domainModules.kt`          | Domain layer dependencies      | UseCases, Repositories, APIs |
 
 ### Navigation
 
@@ -880,151 +869,92 @@ LaunchedEffect(Unit) {
 
 ### Adding a New Feature (TOAD Pattern)
 
-1. **Create State/Event/Effect Models** (`*State.kt`):
+1. **Create State + Event models**
+
 ```kotlin
-sealed class FeatureUiState {
-    object Idle : FeatureUiState()
-    object Loading : FeatureUiState()
-    data class Success(val data: List<DataType>) : FeatureUiState()
-    data class Error(val message: String) : FeatureUiState()
-}
+internal data class FeatureState(
+    val isLoading: Boolean = false,
+    val data: List<DataType> = emptyList(),
+    val errorMessage: String? = null
+) : ViewState
 
-sealed class FeatureUiEvent {
-    object OnLoadData : FeatureUiEvent()
-    object OnRetry : FeatureUiEvent()
-    object OnRefresh : FeatureUiEvent()
-}
-
-sealed class FeatureUiEffect {
-    data class ShowToast(val message: String) : FeatureUiEffect()
-    object NavigateBack : FeatureUiEffect()
+internal sealed interface FeatureEvent : ViewEvent {
+    data class ShowToast(val message: String) : FeatureEvent
 }
 ```
 
-2. **Create ViewModel** (`*ViewModel.kt`):
+2. **Define typed Actions** (`*Action.kt`)
+
 ```kotlin
-class FeatureViewModel(
-    private val useCase: FeatureUseCase
-) : ViewModel() {
+internal sealed interface FeatureAction :
+    ViewAction<FeatureDependencies, FeatureState, FeatureEvent> {
 
-    private val _state = MutableStateFlow<FeatureUiState>(FeatureUiState.Idle)
-    val state: StateFlow<FeatureUiState> = _state.asStateFlow()
-
-    private val _effect = Channel<FeatureUiEffect>()
-    val effect: Flow<FeatureUiEffect> = _effect.receiveAsFlow()
-
-    fun handleEvent(event: FeatureUiEvent) {
-        when (event) {
-            is FeatureUiEvent.OnLoadData -> loadData()
-            is FeatureUiEvent.OnRetry -> loadData()
-            is FeatureUiEvent.OnRefresh -> loadData()
-        }
-    }
-
-    private fun loadData() {
-        viewModelScope.launch {
-            _state.value = FeatureUiState.Loading
-            try {
-                val data = useCase.execute()
-                _state.value = FeatureUiState.Success(data)
-            } catch (e: Exception) {
-                _state.value = FeatureUiState.Error(e.message ?: "Unknown error")
-                _effect.send(FeatureUiEffect.ShowToast("Failed to load data"))
-            }
-        }
-    }
+    data object Load : FeatureAction
+    data object Refresh : FeatureAction
+    data object Retry : FeatureAction
 }
 ```
 
-3. **Create Compose Screen** (`*Screen.kt`):
+3. **Create Dependencies bundle** (`*Dependencies.kt`)
+
 ```kotlin
-@Composable
-fun FeatureScreen(
-    viewModel: FeatureViewModel,
-    modifier: Modifier = Modifier
-) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-
-    LaunchedEffect(Unit) {
-        viewModel.handleEvent(FeatureUiEvent.OnLoadData)
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.effect.collect { effect ->
-            when (effect) {
-                is FeatureUiEffect.ShowToast -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                }
-                is FeatureUiEffect.NavigateBack -> { /* navigate */ }
-            }
-        }
-    }
-
-    Scaffold(
-        topBar = { AppTopBar(title = "Feature Title") }
-    ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)) {
-            when (state) {
-                is FeatureUiState.Idle -> EmptyState()
-                is FeatureUiState.Loading -> LoadingIndicator()
-                is FeatureUiState.Success -> {
-                    val data = (state as FeatureUiState.Success).data
-                    // Display success content
-                }
-                is FeatureUiState.Error -> {
-                    val message = (state as FeatureUiState.Error).message
-                    ErrorMessage(
-                        message = message,
-                        onRetry = { viewModel.handleEvent(FeatureUiEvent.OnRetry) }
-                    )
-                }
-            }
-        }
-    }
-}
+internal data class FeatureDependencies(
+    val someUsecase: SomeUsecase,
+    val timeProvider: TimeProvider
+) : ActionDependencies
 ```
 
-4. **Create Fragment** (if needed to host Compose):
-```kotlin
-class FeatureFragment : Fragment() {
-    private val viewModel: FeatureViewModel by viewModel()
+4. **Create a boring ViewModel** (`*ViewModel.kt`)
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View = ComposeView(requireContext()).apply {
-        setContent {
-            BasicFrameworkTheme {
-                FeatureScreen(viewModel = viewModel)
-            }
-        }
-    }
-}
-```
-
-5. **Create Koin Module** (`*Module.kt`):
 ```kotlin
-val featureModule = module {
-    viewModel { FeatureViewModel(useCase = get()) }
-    factory { FeatureUseCase(repository = get()) }
-    single { FeatureRepository(api = get()) }
-}
-```
-
-6. **Add to `Modules.kt`:**
-```kotlin
-val applicationModules = listOf(
-    // existing modules...
-    featureModule
+internal class FeatureViewModel(
+    dependencies: FeatureDependencies
+) : ToadViewModel<FeatureState, FeatureEvent>(
+    initialState = FeatureState(),
+    dependencies = dependencies
 )
 ```
 
-7. **Write Tests:**
-   - Unit tests for ViewModel (state transitions, event handling)
-   - Compose UI tests for screen rendering
-   - See MIGRATION_M6.md for testing examples
+5. **Compose route/content split**
+
+- `*Route` collects state/events and wires callbacks to actions.
+- `*ScreenContent` stays stateless and renders based on state.
+
+```kotlin
+@Composable
+fun FeatureRoute(viewModel: FeatureViewModel = org.koin.androidx.compose.koinViewModel()) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    FeatureScreenContent(
+        uiState = state,
+        onLoad = { viewModel.runAction(FeatureAction.Load) },
+        onRefresh = { viewModel.runAction(FeatureAction.Refresh) },
+        onRetry = { viewModel.runAction(FeatureAction.Retry) }
+    )
+}
+```
+
+6. **Wire it up with Koin**
+
+```kotlin
+val featureModule = module {
+    factory { SomeUsecase(repository = get()) }
+
+    viewModel {
+        FeatureViewModel(
+            dependencies = FeatureDependencies(
+                someUsecase = get(),
+                timeProvider = get()
+            )
+        )
+    }
+}
+```
+
+7. **Write Tests**
+
+- Action tests (fast): call `execute(deps, scope)` with fakes.
+- Compose tests: render `*ScreenContent` with state directly.
 
 ### Adding a New API Endpoint
 
@@ -1095,7 +1025,9 @@ dependencies {
 
 ### Handling Permissions with ActivityResultContracts
 
-Modern Android permission handling using `ActivityResultContracts` (recommended since M4):
+This project previously included a permission-handling demo using `ActivityResultContracts`. The
+current app flow no longer gates the demo behind runtime permissions, but the pattern remains useful
+for future features:
 
 **In Activity:**
 ```kotlin
@@ -1222,132 +1154,26 @@ dependencies {
 
 ### Testing Approach (TOAD Pattern)
 
-#### Unit Tests (ViewModel Layer)
-Test ViewModel state transitions and event handling:
+#### Unit Tests (Action Layer)
 
-```kotlin
-@OptIn(ExperimentalCoroutinesApi::class)
-class FeatureViewModelTest {
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
+Test actions in isolation by executing `Action.execute(deps, scope)` with fakes.
 
-    private val testDispatcher = StandardTestDispatcher()
+- Assert final `state` reductions (`setState { copy(...) }`).
+- Assert one-off events (`sendEvent(...)`).
 
-    @Mock
-    lateinit var useCase: FeatureUseCase
-
-    private lateinit var viewModel: FeatureViewModel
-
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(testDispatcher)
-        MockitoAnnotations.openMocks(this)
-        viewModel = FeatureViewModel(useCase)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
-
-    @Test
-    fun `handleEvent OnLoadData success should emit Success state`() = runTest {
-        // Arrange
-        val mockData = listOf("data1", "data2")
-        whenever(useCase.execute()).thenReturn(mockData)
-
-        // Act
-        viewModel.handleEvent(FeatureUiEvent.OnLoadData)
-        advanceUntilIdle()
-
-        // Assert
-        val finalState = viewModel.state.value
-        assertTrue(finalState is FeatureUiState.Success)
-        assertEquals(mockData, (finalState as FeatureUiState.Success).data)
-    }
-
-    @Test
-    fun `handleEvent OnLoadData failure should emit Error state`() = runTest {
-        // Arrange
-        val errorMessage = "Network error"
-        whenever(useCase.execute()).thenThrow(RuntimeException(errorMessage))
-
-        // Act
-        viewModel.handleEvent(FeatureUiEvent.OnLoadData)
-        advanceUntilIdle()
-
-        // Assert
-        val finalState = viewModel.state.value
-        assertTrue(finalState is FeatureUiState.Error)
-        assertEquals(errorMessage, (finalState as FeatureUiState.Error).message)
-    }
-}
-```
-
-**Benefits:**
-- ✅ No View mocking needed
-- ✅ Direct state assertions
-- ✅ Test state transitions
-- ✅ Test effect emissions
+This is usually the fastest and most stable test layer in Medium-style TOAD.
 
 #### Compose UI Integration Tests
-Test UI rendering and interactions:
 
-```kotlin
-@RunWith(AndroidJUnit4::class)
-class FeatureScreenTest {
-    @get:Rule
-    val composeTestRule = createComposeRule()
+Test UI rendering and interactions by rendering `*ScreenContent` from a `*State` directly.
 
-    @Test
-    fun successState_shouldShowContent() {
-        // Arrange
-        val mockData = listOf("Item 1", "Item 2")
+- Keep `*ScreenContent` stateless.
+- Prefer `testTag` assertions for stable selectors (e.g., `"loading_indicator"`).
 
-        composeTestRule.setContent {
-            BasicFrameworkTheme {
-                FeatureScreenContent(
-                    state = FeatureUiState.Success(mockData),
-                    onEvent = {}
-                )
-            }
-        }
+#### ViewModel Tests (Minimal)
 
-        // Assert
-        composeTestRule.onNodeWithText("Item 1").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Item 2").assertIsDisplayed()
-    }
-
-    @Test
-    fun loadingState_shouldShowLoadingIndicator() {
-        composeTestRule.setContent {
-            BasicFrameworkTheme {
-                FeatureScreenContent(
-                    state = FeatureUiState.Loading,
-                    onEvent = {}
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText("Loading").assertIsDisplayed()
-    }
-
-    @Test
-    fun errorState_shouldShowErrorWithRetryButton() {
-        composeTestRule.setContent {
-            BasicFrameworkTheme {
-                FeatureScreenContent(
-                    state = FeatureUiState.Error("Network error"),
-                    onEvent = {}
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText("Network error").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
-    }
-}
-```
+ViewModels should stay “boring”, so tests should generally be limited to wiring/DI validation or
+action dispatch integration when needed.
 
 #### Unit Tests (Domain Layer)
 - Test UseCases in isolation
@@ -1378,18 +1204,20 @@ class FeatureScreenTest {
 - Keep `domain` module pure Kotlin (no Android imports)
 
 #### 2. Architecture Patterns
-**Always follow TOAD pattern (Milestone 6+):**
-- Create `*State.kt` with UiState/UiEvent/UiEffect sealed classes first
-- Create ViewModel extending `androidx.lifecycle.ViewModel`
-- Use StateFlow for state, Channel for effects
-- Keep UI layer passive (Compose observes state)
-- Put business logic in ViewModels
+
+**Always follow Medium-style TOAD (Milestone 6+):**
+
+- Create a single `*State.kt` data class implementing `ViewState`
+- Define `*Event` (one-time outputs) implementing `ViewEvent`
+- Define typed `*Action` commands implementing `ViewAction<Deps, State, Event>`
+- Keep ViewModels boring by extending `ToadViewModel<State, Event>`
+- Put business flow in Actions (not in Composables)
 - Keep UseCases focused on single operations
 
-**⚠️ MVP Pattern is Deprecated:**
+**⚠️ MVP Pattern was removed (Milestone 7):**
 - Do NOT create new Presenters or Contracts
-- Use TOAD pattern for all new features
-- See MIGRATION_M6.md for migration guide
+- Only use TOAD + ViewModels
+- See MIGRATION_M6.md for historical context
 
 #### 3. Coroutine Lifecycle Management (TOAD)
 **ViewModel handles lifecycle automatically:**
@@ -1400,10 +1228,12 @@ class FeatureScreenTest {
 - No manual scope management needed
 
 #### 4. Threading
-**Follow standard threading pattern:**
+
+Use coroutines dispatchers / context switching:
 ```kotlin
-.subscribeOn(Schedulers.io())           // For network/disk
-.observeOn(AndroidSchedulers.mainThread()) // For UI updates
+withContext(Dispatchers.IO) {
+    // network/disk
+}
 ```
 
 #### 5. Dependency Injection
@@ -1444,15 +1274,14 @@ class FeatureScreenTest {
 
 ### 📝 When Adding Features (TOAD Pattern)
 
-1. **Define State Models** - Create `*State.kt` with UiState/UiEvent/UiEffect
-2. **Create ViewModel** - Implement state management with StateFlow and Channel
-3. **Create UseCase** - Implement business logic in domain layer
-4. **Add Repository** (if needed) - For new data sources
-5. **Create Compose UI** - Build screen composable with state observation
-6. **Create Fragment** (if needed) - Host Compose UI with ComposeView
-7. **Setup Koin** - Create module with `viewModel { }` and add to composition
-8. **Write Tests** - ViewModel unit tests + Compose UI integration tests
-9. **Test** - Verify build and runtime behavior
+1. **Define State + Event** - Create `*State.kt` (data class) and `*Event.kt` (sealed interface)
+2. **Define Actions** - Create typed `*Action.kt` commands
+3. **Create Dependencies** - Bundle use cases/providers in `*Dependencies.kt`
+4. **Create ViewModel** - Extend `ToadViewModel<State, Event>` (keep it boring)
+5. **Create Compose UI** - Route/content split, dispatch actions from route
+6. **Setup Koin** - `viewModel { FeatureViewModel(dependencies = ...) }`
+7. **Write Tests** - Action tests + stateless Compose content tests
+8. **Test** - Verify build and runtime behavior
 
 ### 🚫 What to Avoid
 
@@ -1462,7 +1291,7 @@ class FeatureScreenTest {
 - **Don't** put business logic in Composables (use ViewModel)
 - **Don't** mutate state directly (use MutableStateFlow.value = ...)
 - **Don't** collect state without lifecycle awareness (use collectAsStateWithLifecycle)
-- **Don't** skip State/Event/Effect definitions for new features
+- **Don't** skip State/Event/Action definitions for new features
 - **Don't** mix MVP and TOAD patterns in the same feature
 - **Don't** create god objects or god classes
 - **Don't** add features without corresponding Koin modules
@@ -1471,7 +1300,7 @@ class FeatureScreenTest {
 ### 🔧 When Refactoring
 
 1. **Maintain architecture** - Don't break Clean Architecture
-2. **Follow TOAD pattern** - Use ViewModel/State/Event/Effect
+2. **Follow TOAD pattern** - Use State/Event/Action + ToadViewModel
 3. **Migrate from MVP** - See MIGRATION_M6.md for guidance
 4. **Update all layers** - If changing data models, update all layers
 5. **Update Koin modules** - Adjust DI configuration as needed (use `viewModel { }`)
@@ -1513,7 +1342,7 @@ class FeatureScreenTest {
 ### 🎯 Best Practices Summary
 
 1. **Separation of Concerns** - Each class has one responsibility
-2. **TOAD Pattern** - State/Event/Effect for clear data flow
+2. **TOAD Pattern** - State/Event + Actions for clear data flow
 3. **Immutable State** - Use sealed classes and data classes
 4. **Unidirectional Data Flow** - Events → ViewModel → State → UI
 5. **Single Responsibility** - Each UseCase = one operation
@@ -1546,7 +1375,7 @@ class FeatureScreenTest {
 - **MIGRATION_M6.md** - Milestone 6 migration guide (MVP → TOAD pattern)
 - **MILESTONE_5_SUMMARY.md** - Jetpack Compose migration summary
 - **MANUAL_TESTING_M6.md** - Manual testing checklist for M6
-- **API Documentation** - https://api.ratesapi.io/
+- **API** - Configurable via `BASE_URL` / `API_KEY` in `local.properties`
 - **Gradle Version Catalog** - https://docs.gradle.org/current/userguide/platforms.html
 - **Jetpack Compose** - https://developer.android.com/jetpack/compose
 - **Material 3** - https://m3.material.io/
@@ -1582,9 +1411,9 @@ class FeatureScreenTest {
 ### 2026-01-24 (Milestone 6 Complete - TOAD Architecture Migration)
 - **Milestone 6: MVP → TOAD Architecture Migration**
   - Added koin-androidx-compose 3.5.3 for ViewModel injection in Compose
-  - Created TOAD pattern State/Event/Effect models:
-    * CurrencyState.kt (CurrencyUiState, CurrencyUiEvent, CurrencyUiEffect)
-    * Inline State/Event/Effect in MainViewModel.kt
+  - Added Medium-style TOAD models:
+      * CurrencyState.kt / CurrencyEvent.kt / CurrencyAction.kt (State + Event + Actions)
+      * Inline State/Event + Actions in MainViewModel.kt
   - Created ViewModels with StateFlow + Channel:
     * CurrencyViewModel.kt (state management for currency feature)
     * MainViewModel.kt (permission flow management)
@@ -1743,31 +1572,31 @@ class FeatureScreenTest {
 **Status:** Completed 2026-01-24
 
 **What Was Done:**
-- ✅ Created State/Event/Effect models (CurrencyState.kt)
-- ✅ Implemented ViewModels with StateFlow + Channel
-- ✅ Updated all Compose UI to use ViewModels
-- ✅ Refactored Koin modules for ViewModel injection
-- ✅ Deprecated all MVP components (@Deprecated annotations)
-- ✅ Wrote 58 comprehensive tests (26 unit + 32 integration)
+
+- ✅ Added Medium-style TOAD models:
+    * CurrencyState.kt / CurrencyEvent.kt / CurrencyAction.kt (State + Event + Actions)
+    * CurrencyDependencies.kt bundle (ActionDependencies)
+- ✅ Implemented boring ViewModels by extending `ToadViewModel<State, Event>`
+- ✅ Updated Compose UI to dispatch actions from route/content split
+- ✅ Updated Koin modules for ViewModel injection (`viewModel { ... }`)
+- ✅ Wrote 58 comprehensive tests (unit + instrumented)
 - ✅ Created migration documentation (MIGRATION_M6.md)
 - ✅ Created manual testing checklist (MANUAL_TESTING_M6.md)
-- ✅ Updated CLAUDE.md with TOAD patterns
 
-**Pattern Selected: TOAD (The Opinionated Android Design)**
-- **UiState:** Sealed class for screen state (Idle, Loading, Success, Error)
-- **UiEvent:** Sealed class for user interactions
-- **UiEffect:** Channel for one-time side effects (toasts, navigation)
-- **ViewModel:** State holder with viewModelScope
-- **StateFlow:** Reactive state observation
-- **Unidirectional Data Flow:** Event → ViewModel → State → UI
+**Pattern Selected: Medium-style TOAD (Typed Object Action Dispatch)**
+
+- **State:** single immutable `data class` (implements `ViewState`)
+- **Event:** one-time outputs (implements `ViewEvent`)
+- **Action:** typed commands (implements `ViewAction<Deps, State, Event>`)
+- **ViewModel:** dispatch-only (`ToadViewModel`) with `StateFlow` + `events`
+- **Flow:** UI → dispatch Action → `setState` reducer → UI
 
 **Key Changes Made:**
 - ✅ Removed Presenter layer (ViewModel replaces it)
-- ✅ Introduced UiState/UiEvent/UiEffect pattern
-- ✅ Refactored Koin modules: `viewModel { }` instead of `scope<Activity>`
-- ✅ Updated Compose UI: `collectAsStateWithLifecycle()` for state observation
-- ✅ Simplified error handling: Sealed Error state + effect channel
-- ✅ Parallel migration strategy (MVP deprecated, not deleted yet)
+- ✅ Moved business logic into Actions (ViewModels stay boring)
+- ✅ Refactored Koin modules to `viewModel { }` definitions
+- ✅ Updated Compose UI: `collectAsStateWithLifecycle()` + event collection
+- ✅ Standardized error handling: state error + toast event
 
 **Benefits Achieved:**
 - ✅ Configuration changes: State survives rotation automatically

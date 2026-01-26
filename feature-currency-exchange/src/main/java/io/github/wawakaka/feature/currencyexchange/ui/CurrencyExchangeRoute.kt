@@ -1,4 +1,4 @@
-package io.github.wawakaka.basicframeworkproject.presentation.ui.screens
+package io.github.wawakaka.feature.currencyexchange.ui
 
 import android.widget.Toast
 import androidx.compose.runtime.Composable
@@ -7,30 +7,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.wawakaka.basicframeworkproject.presentation.content.CurrencyAction
-import io.github.wawakaka.basicframeworkproject.presentation.content.CurrencyEvent
-import io.github.wawakaka.basicframeworkproject.presentation.content.CurrencyViewModel
+import io.github.wawakaka.feature.currencyexchange.presentation.CurrencyAction
+import io.github.wawakaka.feature.currencyexchange.presentation.CurrencyEvent
+import io.github.wawakaka.feature.currencyexchange.presentation.CurrencyViewModel
+import org.koin.androidx.compose.koinViewModel
 
 /**
- * Currency Screen with TOAD pattern (Milestone 6)
- * Uses CurrencyViewModel for state management
- * Delegates rendering to stateless UI module
+ * Feature entry point. The host app should only call this composable.
  */
 @Composable
-fun CurrencyScreen(
-    viewModel: CurrencyViewModel,
+fun CurrencyExchangeRoute(
     modifier: Modifier = Modifier
 ) {
-    // Collect state with lifecycle awareness
+    val viewModel: CurrencyViewModel = koinViewModel()
+
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    // Load initial data on first composition
     LaunchedEffect(Unit) {
         viewModel.runAction(CurrencyAction.LoadRates)
     }
 
-    // Handle one-time events
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
@@ -39,16 +36,11 @@ fun CurrencyScreen(
                 }
 
                 is CurrencyEvent.ShowError -> {
-                    Toast.makeText(
-                        context,
-                        "${event.title}: ${event.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    Toast.makeText(context, "${event.title}: ${event.message}", Toast.LENGTH_LONG)
+                        .show()
                 }
 
-                is CurrencyEvent.NavigateBack -> {
-                    // Handle navigation
-                }
+                CurrencyEvent.NavigateBack -> Unit
             }
         }
     }

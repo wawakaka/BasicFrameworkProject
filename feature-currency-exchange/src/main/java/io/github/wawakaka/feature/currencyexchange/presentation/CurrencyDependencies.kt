@@ -1,10 +1,10 @@
-package io.github.wawakaka.basicframeworkproject.presentation.content
+package io.github.wawakaka.feature.currencyexchange.presentation
 
-import io.github.wawakaka.basicframeworkproject.utilities.TimeProvider
 import io.github.wawakaka.domain.usecase.GetLatestRatesUsecase
+import io.github.wawakaka.feature.currencyexchange.util.TimeProvider
 import io.github.wawakaka.toad.ActionDependencies
 
-class CurrencyDependencies(
+internal class CurrencyDependencies(
     val getLatestRatesUsecase: GetLatestRatesUsecase,
     val timeProvider: TimeProvider
 ) : ActionDependencies

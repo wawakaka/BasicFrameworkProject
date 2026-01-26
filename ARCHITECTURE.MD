@@ -1,6 +1,7 @@
 # Architecture
 
-This project follows Clean Architecture (`app` → `domain` → `repository` → `restapi`).
+This project follows Clean Architecture (`app` → `domain` → `repository` → `restapi`) with feature
+modules inside the presentation layer (e.g. `:feature-currency-exchange`).
 
 For the **presentation layer**, we use **Medium-style TOAD** (Typed Object Action Dispatch),
 inspired by the article:
@@ -11,9 +12,10 @@ inspired by the article:
 ### Core idea
 
 - **State** is a single immutable `data class` per feature.
-- **Events** are one-time side-effects (toast, navigation).
+- **Events** are one-time outputs (toast, navigation, etc.).
 - **Actions** are typed command objects that encapsulate business logic.
-- **ViewModel** is intentionally boring: it exposes state/events and dispatches actions.
+- **ViewModel** is intentionally boring: it exposes `StateFlow` + `events` Flow and dispatches
+  actions.
 
 ### Naming conventions
 
@@ -41,12 +43,10 @@ Located in module `:lib-toad` under package `io.github.wawakaka.toad` (
 
 - **Do not add new public methods to ViewModels** for user actions.
     - Add a new `*Action` instead.
-- **State updates must use reducers**:
-    - `scope.setState { copy(...) }`
-- **Side effects must use events**:
-    - `scope.sendEvent(CurrencyEvent.ShowToast(...))`
-- **UI dispatches actions**:
-    - `viewModel.runAction(CurrencyAction.LoadRates)`
+- **State updates must use reducers:** `scope.setState { copy(...) }`
+- **Side effects must use events:** `scope.sendEvent(CurrencyEvent.ShowToast(...))`
+- **UI dispatches actions:** `viewModel.runAction(CurrencyAction.LoadRates)` (or route-level
+  callbacks that forward to actions)
 
 ### Concurrency policy
 
@@ -55,9 +55,8 @@ Located in module `:lib-toad` under package `io.github.wawakaka.toad` (
 
 ### Time / timestamps
 
-- Use `TimeProvider` (
-  `app/src/main/java/io/github/wawakaka/basicframeworkproject/utilities/TimeProvider.kt`) for
-  consistent time formatting.
+- Use `TimeProvider` from the feature module for consistent time formatting:
+  `feature-currency-exchange/src/main/java/io/github/wawakaka/feature/currencyexchange/util/TimeProvider.kt`.
 - In tests, use a fake `TimeProvider` to avoid flaky timestamp assertions.
 
 ### Testing
@@ -68,3 +67,8 @@ Preferred testing approach:
   deps/scope.
 - **ViewModel tests** (minimal): verify wiring and state/event propagation.
 - **Compose tests**: render `*ScreenContent` from `*State` directly.
+
+Notes:
+
+- Prefer **stable semantics** (e.g., `Modifier.testTag("loading_indicator")`) over asserting
+  transient text like "Loading".

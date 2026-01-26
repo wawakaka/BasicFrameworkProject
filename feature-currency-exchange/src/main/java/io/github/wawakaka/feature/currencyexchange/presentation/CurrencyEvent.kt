@@ -1,8 +1,8 @@
-package io.github.wawakaka.basicframeworkproject.presentation.content
+package io.github.wawakaka.feature.currencyexchange.presentation
 
 import io.github.wawakaka.toad.ViewEvent
 
-sealed interface CurrencyEvent : ViewEvent {
+internal sealed interface CurrencyEvent : ViewEvent {
     data class ShowToast(val message: String) : CurrencyEvent
 
     data class ShowError(
