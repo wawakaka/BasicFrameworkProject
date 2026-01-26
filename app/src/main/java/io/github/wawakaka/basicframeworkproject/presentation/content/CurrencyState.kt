@@ -1,5 +1,7 @@
 package io.github.wawakaka.basicframeworkproject.presentation.content
 
+import java.math.BigDecimal
+
 /**
  * TOAD Pattern - State/Event/Effect Models for Currency Feature
  * Created for Milestone 6: MVP → TOAD Migration
@@ -28,7 +30,7 @@ sealed class CurrencyUiState {
      * @param timestamp Optional timestamp of when data was loaded
      */
     data class Success(
-        val rates: List<Pair<String, Double>>,
+        val rates: List<Pair<String, BigDecimal>>,
         val timestamp: String = ""
     ) : CurrencyUiState()
 

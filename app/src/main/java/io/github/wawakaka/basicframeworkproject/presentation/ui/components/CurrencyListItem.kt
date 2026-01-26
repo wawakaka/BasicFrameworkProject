@@ -14,11 +14,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.wawakaka.ui.theme.BasicFrameworkTheme
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 @Composable
 fun CurrencyListItem(
     currencyCode: String,
-    rate: Double,
+    rate: BigDecimal,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -39,7 +41,7 @@ fun CurrencyListItem(
                 style = MaterialTheme.typography.titleLarge
             )
             Text(
-                text = String.format("%.4f", rate),
+                text = rate.setScale(2, RoundingMode.HALF_UP).toPlainString(),
                 style = MaterialTheme.typography.bodyLarge
             )
         }
@@ -52,7 +54,7 @@ private fun CurrencyListItemPreview() {
     BasicFrameworkTheme {
         CurrencyListItem(
             currencyCode = "USD",
-            rate = 1.2345
+            rate = BigDecimal("1.2345")
         )
     }
 }
@@ -62,10 +64,10 @@ private fun CurrencyListItemPreview() {
 private fun CurrencyListItemMultiplePreview() {
     BasicFrameworkTheme {
         androidx.compose.foundation.layout.Column {
-            CurrencyListItem(currencyCode = "USD", rate = 1.0000)
-            CurrencyListItem(currencyCode = "EUR", rate = 0.9234)
-            CurrencyListItem(currencyCode = "GBP", rate = 0.7812)
-            CurrencyListItem(currencyCode = "JPY", rate = 149.5600)
+            CurrencyListItem(currencyCode = "USD", rate = BigDecimal(1.0000))
+            CurrencyListItem(currencyCode = "EUR", rate = BigDecimal(0.9234))
+            CurrencyListItem(currencyCode = "GBP", rate = BigDecimal(0.7812))
+            CurrencyListItem(currencyCode = "JPY", rate = BigDecimal(149.5600))
         }
     }
 }

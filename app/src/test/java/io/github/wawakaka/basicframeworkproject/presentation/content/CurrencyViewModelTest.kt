@@ -20,6 +20,7 @@ import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
+import java.math.BigDecimal
 
 /**
  * Unit tests for CurrencyViewModel (TOAD pattern)
@@ -64,7 +65,7 @@ class CurrencyViewModelTest {
     @Test
     fun `handleEvent OnLoadRates should transition to Loading state`() = runTest {
         // Arrange
-        val mockRates = listOf("USD" to 1.0, "EUR" to 0.92)
+        val mockRates = listOf("USD" to BigDecimal("1.0"), "EUR" to BigDecimal("0.92"))
         whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(mockRates)
 
         // Act
@@ -78,7 +79,11 @@ class CurrencyViewModelTest {
     @Test
     fun `handleEvent OnLoadRates success should emit Success state with data`() = runTest {
         // Arrange
-        val mockRates = listOf("USD" to 1.0, "EUR" to 0.92, "GBP" to 0.78)
+        val mockRates = listOf(
+            "USD" to BigDecimal("1.0"),
+            "EUR" to BigDecimal("0.92"),
+            "GBP" to BigDecimal("0.78")
+        )
         whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(mockRates)
 
         // Act
@@ -113,7 +118,7 @@ class CurrencyViewModelTest {
     @Test
     fun `handleEvent OnRetry should reload data`() = runTest {
         // Arrange
-        val mockRates = listOf("USD" to 1.0)
+        val mockRates = listOf("USD" to BigDecimal("1.0"))
         whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(mockRates)
 
         // Act
@@ -129,7 +134,7 @@ class CurrencyViewModelTest {
     @Test
     fun `handleEvent OnRefresh should reload data`() = runTest {
         // Arrange
-        val mockRates = listOf("JPY" to 149.56)
+        val mockRates = listOf("JPY" to BigDecimal("149.56"))
         whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(mockRates)
 
         // Act
@@ -166,7 +171,7 @@ class CurrencyViewModelTest {
     @Test
     fun `state should transition from Idle to Loading to Success`() = runTest {
         // Arrange
-        val mockRates = listOf("USD" to 1.0)
+        val mockRates = listOf("USD" to BigDecimal("1.0"))
         whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(mockRates)
 
         val states = mutableListOf<CurrencyUiState>()
@@ -224,7 +229,7 @@ class CurrencyViewModelTest {
     @Test
     fun `empty rates list should still emit Success state`() = runTest {
         // Arrange
-        val emptyRates = emptyList<Pair<String, Double>>()
+        val emptyRates = emptyList<Pair<String, BigDecimal>>()
         whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(emptyRates)
 
         // Act
@@ -256,7 +261,7 @@ class CurrencyViewModelTest {
     @Test
     fun `multiple rapid events should handle gracefully`() = runTest {
         // Arrange
-        val mockRates = listOf("USD" to 1.0)
+        val mockRates = listOf("USD" to BigDecimal("1.0"))
         whenever(getRatesUseCase.getLatestCurrencyRates()).thenReturn(mockRates)
 
         // Act - Fire multiple events rapidly

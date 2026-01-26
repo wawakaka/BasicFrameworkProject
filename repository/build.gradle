@@ -5,8 +5,21 @@ plugins {
 
 apply from: "$rootDir/dep/build-lib.gradle"
 
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localProperties.load(new FileInputStream(localPropertiesFile))
+}
+
 android {
     namespace 'io.github.wawakaka.repository'
+    buildFeatures {
+        buildConfig true
+    }
+    defaultConfig {
+        buildConfigField "String", "API_KEY", "\"${localProperties.getProperty("API_KEY") ?: project.findProperty("API_KEY") ?: ""}\""
+        buildConfigField "String", "BASE_URL", "\"${localProperties.getProperty("BASE_URL") ?: project.findProperty("BASE_URL") ?: ""}\""
+    }
 }
 
 dependencies {

@@ -23,6 +23,6 @@ object Repository {
     }
 
     private fun providesCurrencyRatesRetrofit(application: Application): Retrofit {
-        return RestApi.retrofit(application = application, baseUrl = CurrencyRatesApi.BASE_URL)
+        return RestApi.retrofit(application = application, baseUrl = BuildConfig.BASE_URL)
     }
 }

@@ -24,6 +24,7 @@ import io.github.wawakaka.basicframeworkproject.presentation.ui.components.Curre
 import io.github.wawakaka.ui.components.AppTopBar
 import io.github.wawakaka.ui.components.ErrorMessage
 import io.github.wawakaka.ui.components.LoadingIndicator
+import java.math.BigDecimal
 
 @Composable
 fun CurrencyScreenContent(
@@ -82,7 +83,7 @@ fun CurrencyScreenContent(
 
 @Composable
 fun CurrencyListContent(
-    currencies: List<Pair<String, Double>>,
+    currencies: List<Pair<String, BigDecimal>>,
     timestamp: String = "",
     modifier: Modifier = Modifier
 ) {
