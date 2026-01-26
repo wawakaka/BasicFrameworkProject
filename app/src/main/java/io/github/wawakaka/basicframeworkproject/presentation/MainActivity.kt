@@ -9,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -21,13 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentContainerView
-import androidx.fragment.app.commit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.wawakaka.basicframeworkproject.R
-import io.github.wawakaka.basicframeworkproject.presentation.content.CurrencyFragment
+import io.github.wawakaka.basicframeworkproject.presentation.ui.screens.CurrencyScreen
 import io.github.wawakaka.ui.components.AppTopBar
 import io.github.wawakaka.ui.theme.BasicFrameworkTheme
+import org.koin.androidx.compose.koinViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
@@ -68,22 +67,22 @@ class MainActivity : AppCompatActivity() {
         when {
             ContextCompat.checkSelfPermission(
                 this,
-                Manifest.permission.CAMERA
+                Manifest.permission.INTERNET
             ) == PackageManager.PERMISSION_GRANTED -> {
                 // Permission already granted
                 Log.d(TAG, "Permission already granted")
                 mainViewModel.onPermissionResult(granted = true)
             }
 
-            shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> {
+            shouldShowRequestPermissionRationale(Manifest.permission.INTERNET) -> {
                 // Show rationale dialog explaining why we need the permission
                 showPermissionRationaleDialog()
             }
 
             else -> {
                 // Request permission
-                Log.d(TAG, "Requesting camera permission")
-                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+                Log.d(TAG, "Requesting INTERNET permission")
+                requestPermissionLauncher.launch(Manifest.permission.INTERNET)
             }
         }
     }
@@ -91,7 +90,7 @@ class MainActivity : AppCompatActivity() {
     private fun showPermissionRationaleDialog() {
         // TODO M7: Show Material 3 Compose AlertDialog explaining camera permission need
         // For now, proceed with permission request
-        requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+        requestPermissionLauncher.launch(Manifest.permission.INTERNET)
     }
 
     companion object {
@@ -154,8 +153,8 @@ fun MainScreenContent(
                     Text("Checking permissions...")
                 }
                 is MainUiState.PermissionGranted -> {
-                    // Show currency screen via Fragment (will migrate to full Compose in future)
-                    CurrencyFragmentContainer()
+                    // Show currency screen directly with Compose
+                    CurrencyScreen(viewModel = koinViewModel())
                 }
                 is MainUiState.PermissionDenied -> {
                     PermissionDeniedContent(
@@ -167,37 +166,6 @@ fun MainScreenContent(
             }
         }
     }
-}
-
-/**
- * Fragment container for CurrencyFragment
- * Temporary bridge until full Compose migration
- */
-@Composable
-fun CurrencyFragmentContainer(
-    modifier: Modifier = Modifier
-) {
-    androidx.compose.ui.viewinterop.AndroidView(
-        factory = { context ->
-            FragmentContainerView(context).apply {
-                id = R.id.fragment_container
-            }
-        },
-        modifier = modifier.fillMaxSize(),
-        update = { view ->
-            // Get FragmentManager from context
-            val activity = view.context as? AppCompatActivity
-            activity?.supportFragmentManager?.let { fragmentManager ->
-                // Add CurrencyFragment if not already added
-                val currentFragment = fragmentManager.findFragmentById(view.id)
-                if (currentFragment == null) {
-                    fragmentManager.commit {
-                        replace(view.id, CurrencyFragment())
-                    }
-                }
-            }
-        }
-    )
 }
 
 /**
@@ -214,7 +182,7 @@ fun PermissionDeniedContent(
     ) {
         Text("Camera permission is required")
         Text("to use this application")
-        androidx.compose.foundation.layout.Spacer(
+        Spacer(
             modifier = Modifier.padding(16.dp)
         )
         Button(onClick = onRequestPermission) {
