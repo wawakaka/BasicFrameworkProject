@@ -1,5 +1,6 @@
 package io.github.wawakaka.toad
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
@@ -9,7 +10,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 
 /**
  * Base ViewModel for Medium-style TOAD.
@@ -27,23 +27,10 @@ abstract class ToadViewModel<S : ViewState, E : ViewEvent, D : ActionDependencie
     private val _events = Channel<E>(Channel.BUFFERED)
     val events: Flow<E> = _events.receiveAsFlow()
 
-    private val dispatchMutex = Mutex()
-
     fun runAction(action: ViewAction<D, S, E>) {
-        dispatch(action)
-    }
-
-    protected fun dispatch(action: ViewAction<D, S, E>) {
-        if (!dispatchMutex.tryLock()) {
-            return
-        }
-
+        Log.d(this::class.simpleName, "### runAction: ${action::class.simpleName}")
         viewModelScope.launch {
-            try {
-                action.execute(dependencies, ActionScope(_state, _events))
-            } finally {
-                dispatchMutex.unlock()
-            }
+            action.execute(dependencies, ActionScope(_state, _events))
         }
     }
 }

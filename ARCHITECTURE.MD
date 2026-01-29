@@ -66,11 +66,6 @@ Located in module `:lib-toad` under package `io.github.wawakaka.toad` (
 - **UI dispatches actions:** `viewModel.runAction(CurrencyAction.LoadRates)` (or route-level
   callbacks that forward to actions)
 
-### Concurrency policy
-
-- When `state.isLoading == true`, **ignore any new action** (`execute` returns early).
-- This keeps action handling deterministic and prevents overlapping network calls.
-
 ### Time / timestamps
 
 - Use `TimeProvider` from the feature module for consistent time formatting:
