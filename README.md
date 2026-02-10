@@ -52,7 +52,7 @@ Note: The actual base URL and endpoint paths are controlled by DI / Retrofit con
 
 ## Documentation
 
-- [ARCHITECTURE.MD](ARCHITECTURE.MD) - Clean Architecture + TOAD guidelines
+- [ARCHITECTURE.MD](ARCHITECTURE.MD) - Architecture + TOAD guidelines
 - [CLAUDE.md](CLAUDE.md) - Comprehensive project documentation (workflows, conventions, testing,
   migrations)
 
